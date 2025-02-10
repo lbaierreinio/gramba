@@ -1,10 +1,9 @@
 import torch.nn as nn
-from layers.Gramba import Gramba
 
-class GrambaBlock(nn.Module):
-    def __init__(self, hidden_dim, expansion_factor=4, bidirectional=False):
+class SWABlock(nn.Module):
+    def __init__(self, hidden_dim, expansion_factor=4):
         super().__init__()
-        self.gramba = Gramba(hidden_dim, expansion_factor, bidirectional)
+        self.swa = nn.Identity() # TODO: Remove placeholder for SWA
         self.ln = nn.LayerNorm(hidden_dim)
         self.mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * expansion_factor),
@@ -13,8 +12,8 @@ class GrambaBlock(nn.Module):
         )
 
     def forward(self, x, mask=None):
-        # Gramba with residual connection
-        x = x + self.gramba(x, mask)
+        # SWA with residual connection
+        x = x + self.swa(x, mask)
         x = self.ln(x)
 
         # MLP 1 with residual connection
