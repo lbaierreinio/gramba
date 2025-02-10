@@ -13,7 +13,7 @@ class SWABlock(nn.Module):
 
     def forward(self, x, mask=None):
         # SWA with residual connection
-        x = x + self.swa(x, mask)
+        x = x + self.swa(x)
         x = self.ln(x)
 
         # MLP 1 with residual connection
