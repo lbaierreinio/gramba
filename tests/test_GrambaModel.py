@@ -1,5 +1,5 @@
 import torch
-from GrambaModel import GrambaModel
+from models.GrambaModel import GrambaModel
 
 
 class TestGrambaModel:
