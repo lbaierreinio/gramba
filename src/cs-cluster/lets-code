@@ -1,0 +1,3 @@
+echo "Connecting to the next available GPU..."
+srun --partition=gpunodes -c 4 --mem=16G --gres=gpu:1 -t 60 --pty bash
+echo "Disconnected from GPU :("
