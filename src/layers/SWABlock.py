@@ -20,8 +20,6 @@ class SWABlock(nn.Module):
 
     def forward(self, x, mask=None):
         # SWA with residual connection
-
-        # padding seqlen to the nearest multiple of window_size. Needed for the 'sliding_chunks' attention
         x = x +  self.swa(x, mask)
         x = self.ln(x)
 
