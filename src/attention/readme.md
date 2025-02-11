@@ -1,7 +1,7 @@
 In this folder we implemented different types of linear attention mechanisms.
 
 ## Linear Self Attention
-The linformer is implemented in a python package availible [here](https://github.com/tatp22/linformer-pytorch). It can be downloaded using the following command:
+The linformer is implemented in a python package available [here](https://github.com/tatp22/linformer-pytorch). It can be downloaded using the following command:
 
 ```pip install linformer-pytorch```
 
