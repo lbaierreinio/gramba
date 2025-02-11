@@ -4,7 +4,7 @@ from models.GrambaModel import GrambaModel
 
 class TestGrambaModel:
     def test_gramba_model(self):
-        hidden_dim, vocab_size, num_layers, window_size, pad_token_id = 32, 100, 2, 512, 0
+        hidden_dim, vocab_size, num_layers, window_size, pad_token_id = 32, 100, 2, 10, 0
         gramba_model = GrambaModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id)
 
         x = torch.randint(0, vocab_size, (16, 10))
