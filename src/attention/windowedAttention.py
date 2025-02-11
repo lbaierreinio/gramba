@@ -12,6 +12,10 @@ def create_sparse_attention_mask(seq_len, window_size, device):
             indices.append([i, j])
             values.append(False)
     
+    for j in range(seq_len):
+        indices.append([seq_len - 1, j])  # Last row attends to all tokens
+        values.append(False)
+    
     indices = torch.tensor(indices, dtype=torch.long, device=device).t()
     values = torch.tensor(values, dtype=torch.float, device=device)
     sparse_mask = coo_tensor(indices, values, size=(seq_len, seq_len))
