@@ -3,6 +3,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from transformers import BertTokenizer
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
+from transformers import get_cosine_schedule_with_warmup
 
 dataset = torch.load('imdb_dataset.pt')
 train_size = int(0.8 * len(dataset))
@@ -44,8 +45,9 @@ print(f"Bidirectional: {bidirectional}")
 print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 
 
-
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+num_training_steps = 100
+scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=10, num_training_steps=num_training_steps)
 loss_fn = torch.nn.CrossEntropyLoss()
 
 inputs = batch['input_ids'].to(device)
@@ -54,11 +56,12 @@ mask = ~batch['attention_mask'].bool().to(device)
 
 
 model.train()
-for i in range(200):
+for i in range(num_training_steps):
     optimizer.zero_grad()
     logits = model(inputs, mask)
     loss = loss_fn(logits, labels)
     loss.backward()
     optimizer.step()
+    scheduler.step()
     print(f"Epoch {i}, loss {loss.item()}")
 
