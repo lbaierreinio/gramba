@@ -3,9 +3,15 @@ import torch
 from attention.widowedAttention import WidowedSelfAttention, pad_to_window_size
 
 class SWABlock(nn.Module):
-    def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4):
+    def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=8, attention_probs_dropout_prob=0.3):
         super().__init__()
-        self.swa = WidowedSelfAttention(hidden_dim, num_attention_heads=8, attention_probs_dropout_prob=0.3, window_size=window_size, output_attentions=False)
+        self.swa = WidowedSelfAttention(
+            hidden_dim, 
+            num_attention_heads=num_attention_heads, 
+            attention_probs_dropout_prob=attention_probs_dropout_prob, 
+            window_size=window_size, 
+            output_attentions=False
+        )
         self.ln = nn.LayerNorm(hidden_dim)
         self.mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * expansion_factor),
