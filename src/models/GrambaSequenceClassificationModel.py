@@ -9,5 +9,5 @@ class GrambaSequenceClassificationModel(nn.Module):
 
     def forward(self, x, mask=None):
         x = self.gramba_model(x, mask) # B_S, S_L, H_D
-        x = self.classifier(x[: -1, :]) # Predict on final token (should be CLS token)
+        x = self.classifier(x[:, -1, :]) # Predict on final token (should be CLS token)
         return x

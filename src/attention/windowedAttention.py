@@ -10,7 +10,7 @@ def create_sparse_attention_mask(seq_len, window_size, device):
     for i in range(seq_len):
         for j in range(max(0, i - window_size), min(seq_len, i + window_size + 1)):
             indices.append([i, j])
-            values.append(1.0)
+            values.append(False)
     
     indices = torch.tensor(indices, dtype=torch.long, device=device).t()
     values = torch.tensor(values, dtype=torch.float, device=device)
@@ -44,13 +44,13 @@ class SparseWindowedAttention(nn.Module):
         v = v.permute(0, 2, 1, 3)
         
         # Create sparse mask
-        sparse_mask = create_sparse_attention_mask(seq_len, self.window_size, device)
+        sparse_mask = create_sparse_attention_mask(seq_len, self.window_size, device).bool()
         
         # Compute scaled dot-product attention
         attn_scores = torch.einsum("bhqd, bhkd -> bhqk", q, k) / (self.head_dim ** 0.5)
-        attn_scores = attn_scores.masked_fill(sparse_mask.to_dense() == 0, float('-inf'))
+        attn_scores = attn_scores.masked_fill(sparse_mask.to_dense(), float('-inf'))
         if mask is not None:
-            attn_scores = attn_scores.masked_fill(mask[:, None, None, :] == 0, float('-inf'))
+            attn_scores = attn_scores.masked_fill(mask[:, None, None, :], float('-inf'))
         attn_weights = F.softmax(attn_scores, dim=-1)
         
         # Apply attention weights to values
