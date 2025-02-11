@@ -1,6 +1,5 @@
 import torch.nn as nn
-import torch
-from attention.widowedAttention import SparseWindowedAttention
+from attention.windowedAttention import SparseWindowedAttention
 
 class SWABlock(nn.Module):
     def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=2):
@@ -21,11 +20,7 @@ class SWABlock(nn.Module):
 
     def forward(self, x, mask=None):
         # SWA with residual connection
-        # Attention mask values -- 0: no attention, 1: local attention, 2: global attention
-        attention_mask = torch.ones(x.shape, dtype=torch.long, device=x.device) # initialize to local attention
-
-        # padding seqlen to the nearest multiple of window_size. Needed for the 'sliding_chunks' attention
-        x = x +  self.swa(x)
+        x = x +  self.swa(x, mask)
         x = self.ln(x)
 
         # MLP 1 with residual connection

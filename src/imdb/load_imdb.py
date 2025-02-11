@@ -48,6 +48,7 @@ def clean_text(text):
 data['cleaned_review'] = data['review'].apply(clean_text)
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+tokenizer.padding_side = 'left'
 
 imdb_dataset = IMDBDataset(data['cleaned_review'].tolist(), data['sentiment'].tolist(), tokenizer)
 
