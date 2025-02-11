@@ -11,7 +11,8 @@ train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 for batch in train_dataloader:
-    print(batch['input_ids'].shape)
-    print(batch['attention_mask'].shape)
-    print(batch['labels'])
+    for i in range(5):
+        print(batch['input_ids'][i])
+        print(batch['attention_mask'][i])
+        print(batch['labels'][i])
     break
