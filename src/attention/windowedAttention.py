@@ -30,7 +30,7 @@ class SparseWindowedAttention(nn.Module):
         self.qkv_proj = nn.Linear(embed_dim, 3 * embed_dim)
         self.output_proj = nn.Linear(embed_dim, embed_dim)
     
-    def forward(self, x):
+    def forward(self, x, mask=None):
         batch_size, seq_len, embed_dim = x.shape
         device = x.device
         
@@ -49,6 +49,8 @@ class SparseWindowedAttention(nn.Module):
         # Compute scaled dot-product attention
         attn_scores = torch.einsum("bhqd, bhkd -> bhqk", q, k) / (self.head_dim ** 0.5)
         attn_scores = attn_scores.masked_fill(sparse_mask.to_dense() == 0, float('-inf'))
+        if mask is not None:
+            attn_scores = attn_scores.masked_fill(mask[:, None, None, :] == 0, float('-inf'))
         attn_weights = F.softmax(attn_scores, dim=-1)
         
         # Apply attention weights to values
