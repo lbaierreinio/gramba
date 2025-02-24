@@ -5,7 +5,7 @@ from layers.SWABlock import SWABlock
 class GrambaModel(nn.Module):
     def __init__(self, hidden_dim, vocab_size, num_layers, window_size, pad_token_id, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
         super().__init__()
-        self.embedding = nn.Embedding(vocab_size, hidden_dim)
+        #self.embedding = nn.Embedding(vocab_size, hidden_dim)
         self.layers = nn.ModuleList()
 
         for _ in range(num_layers):
@@ -14,7 +14,7 @@ class GrambaModel(nn.Module):
             self.layers.append(SWABlock(hidden_dim, window_size, pad_token_id))
 
     def forward(self, x, mask=None):
-        x = self.embedding(x)
+        #x = self.embedding(x)
 
         for layer in self.layers:
             x = layer(x, mask)
