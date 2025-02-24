@@ -4,7 +4,7 @@ import torch
 class TwitterDataset(Dataset):
     def __init__(self, sequences, labels, masks):
         self.embedding = sequences
-        self.labels = torch.tensor(labels, dtype=torch.long)
+        self.labels = torch.tensor(labels, dtype=torch.float)
         self.masks = masks
 
     def __len__(self):
