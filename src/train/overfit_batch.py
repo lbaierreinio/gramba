@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 from transformers import get_cosine_schedule_with_warmup
 
-dataset = torch.load('imdb_dataset.pt')
+dataset = torch.load('src/imdb/IMDBDataset.pt')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -25,7 +25,7 @@ num_layers = 2
 window_size = 8
 ratio = 3
 pad_token_id = 0
-num_classes = 2
+num_classes = 1
 bidirectional = False
 expansion_factor = 4
 
@@ -48,10 +48,10 @@ print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 num_training_steps = 100
 scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=10, num_training_steps=num_training_steps)
-loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = torch.nn.BCEWithLogitsLoss()
 
 inputs = batch['input_ids'].to(device)
-labels = batch['labels'].to(device)
+labels = batch['labels'].to(device).float()
 mask = ~batch['attention_mask'].bool().to(device)
 
 
@@ -59,6 +59,7 @@ model.train()
 for i in range(num_training_steps):
     optimizer.zero_grad()
     logits = model(inputs, mask)
+    logits = logits.squeeze(-1)
     loss = loss_fn(logits, labels)
     loss.backward()
     optimizer.step()
