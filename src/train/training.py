@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
-from transformers import BertTokenizer
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 from transformers import get_cosine_schedule_with_warmup
 from tqdm import tqdm
@@ -12,15 +11,15 @@ train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
 train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=8, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=512, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=512, shuffle=False)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 hidden_dim = 50
 vocab_size = 400000
-num_layers = 3
-window_size = 8
+num_layers = 10
+window_size = 5
 ratio = 4
 pad_token_id = 0
 num_classes = 1
@@ -73,7 +72,9 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
             for batch in train_dataloader:
                 inputs = batch['input_ids'].to(device)
                 labels = batch['labels'].to(device)
+                #add labels at the end of inputs
                 mask = ~batch['attention_mask'].bool().to(device)
+
                 #forward pass
                 logits = model(inputs, mask)
                 logits = logits.squeeze(-1)
@@ -90,7 +91,7 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
         with torch.no_grad():
             for batch in val_dataloader:
                 inputs = batch['input_ids'].to(device)
-                labels = batch['labels'].to(device).float()
+                labels = batch['labels'].to(device)
                 mask = ~batch['attention_mask'].bool().to(device)
                 logits = model(inputs, mask)
                 logits = logits.squeeze(-1)
@@ -98,9 +99,10 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
                 val_loss += loss.item()
                 #sigmoid activation function
                 logits = torch.sigmoid(logits)
-                val_accuracy += ((logits >= 0.5) == labels).sum().item()
-        val_loss /= len(val_dataloader)
-        val_accuracy /= len(val_dataloader)
+                preds = (logits > 0.5).float()
+                val_accuracy += (preds == labels).float().sum().item()
+        val_loss /= val_size
+        val_accuracy /= val_size
         #saving the model
         torch.save(model.state_dict(), f"{saving_folder}/model_{i}.pt")
         #saving acc and loss in log file

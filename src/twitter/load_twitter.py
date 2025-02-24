@@ -42,9 +42,9 @@ data['sentiment'] = data['sentiment'].map({0: 0, 4: 1})  # Convert sentiment lab
 data = data.drop(['id', 'date', 'query', 'user_id'], axis=1)
 
 #keep only half of the dataset for faster training (with the same distribution of labels)
-positive_data = data[data['sentiment'] == 1].sample(frac=0.5)
-negative_data = data[data['sentiment'] == 0].sample(frac=0.5)
-data = pd.concat([positive_data, negative_data])
+# positive_data = data[data['sentiment'] == 1].sample(frac=0.5)
+# negative_data = data[data['sentiment'] == 0].sample(frac=0.5)
+# data = pd.concat([positive_data, negative_data])
 
 def clean_text(text, stem=False):
     text = re.sub(text_cleaning_re, ' ', str(text).lower()).strip()
@@ -54,7 +54,7 @@ def clean_text(text, stem=False):
 data.text = data.text.apply(lambda x: clean_text(x))
 
 tokenized_text = data.text.apply(lambda x: word_tokenize(x))
-
+labels = data.sentiment.tolist()
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(data.text)
 word_index = tokenizer.word_index
@@ -78,17 +78,20 @@ for word, i in word_index.items():
 
 embedded_sentences = []
 masks = []
-max_len = max(len(sentence) for sentence in tokenized_text)
+max_len = max(len(sentence) for sentence in tokenized_text) + 1 #adding 1 for the cls token
 
 def sentence_to_embedding(sentence):
     return [glove_embeddings.get(word, np.zeros(EMBEDDING_SIZE)) for word in sentence]
 
-for sentence in tqdm(tokenized_text):
+for i in tqdm(range(len(tokenized_text))):
+    sentence = tokenized_text[i] + ['cls']
+    label = labels[i]
     embedded_sentence = sentence_to_embedding(sentence)
-    mask =[np.ones(EMBEDDING_SIZE)]*len(embedded_sentence) + [np.zeros(EMBEDDING_SIZE)] * (max_len - len(embedded_sentence))
-    embedded_sentence += [np.zeros(EMBEDDING_SIZE)] * (max_len - len(embedded_sentence))
+    mask = [0] * (max_len - len(embedded_sentence)) + [1]*len(embedded_sentence)
+    embedded_sentence = [np.zeros(EMBEDDING_SIZE)] * (max_len - len(embedded_sentence)) + embedded_sentence
+    #add the label at the end for the minGRU units
     embedded_sentences.append(embedded_sentence)
-    masks.append(np.concatenate(mask))
+    masks.append(np.array(mask))
 
 embedded_sentences = np.array(embedded_sentences)
 masks = np.array(masks)
