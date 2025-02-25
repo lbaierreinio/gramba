@@ -5,22 +5,26 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import numpy as np
 
 num_training_steps = 10
+EMBEDDING_DIM = 300
+VOCAB_SIZE = 335508
 
 class TextClassificationModel(nn.Module):
-    def __init__(self):
+    def __init__(self, embedding_matrix):
         super(TextClassificationModel, self).__init__()
-        
+        self.embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIM, padding_idx=0, _weight=embedding_matrix, _freeze=True)
         self.spatial_dropout = nn.Dropout2d(0.2)  # Equivalent to SpatialDropout1D
-        self.conv1d = nn.Conv1d(in_channels=50, out_channels=64, kernel_size=5)
+        self.conv1d = nn.Conv1d(in_channels=EMBEDDING_DIM, out_channels=64, kernel_size=5)
         self.lstm = nn.LSTM(64, 64, bidirectional=True, dropout=0.2, batch_first=True)
         self.fc1 = nn.Linear(128, 512)
         self.fc2 = nn.Linear(512, 512)
         self.fc3 = nn.Linear(512, 1)
         
     def forward(self, x, mask):
-        x = x.masked_fill(mask.unsqueeze(-1), 0)
+        x = x.masked_fill(mask, 0)
+        x = self.embedding(x)
         x = x.permute(0, 2, 1)  # Conv1D expects (batch_size, embedding_dim, seq_length)
         x = self.spatial_dropout(x.unsqueeze(2)).squeeze(2)  # Equivalent to SpatialDropout1D
         x = F.relu(self.conv1d(x))
@@ -32,8 +36,10 @@ class TextClassificationModel(nn.Module):
         x = F.relu(self.fc2(x))
         x = torch.sigmoid(self.fc3(x))
         return x
-    
-model = TextClassificationModel()
+
+#Load embedding matrix
+embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32)
+model = TextClassificationModel(embedding_matrix)
 
 
 # Define optimizer
@@ -94,7 +100,6 @@ with tqdm(total=num_training_steps, desc="Training") as pbar1:
                 loss = loss_fn(logits, labels)
                 val_loss += loss.item()
                 #sigmoid activation function
-                logits = torch.sigmoid(logits)
                 preds = (logits > 0.5).float()
                 val_accuracy += (preds == labels).float().sum().item()
         val_loss /= len(val_dataloader)
