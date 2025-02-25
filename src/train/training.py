@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
-from transformers import get_cosine_schedule_with_warmup
+import torch.optim.lr_scheduler as lr_scheduler
 from tqdm import tqdm
 import os
 
@@ -46,7 +46,7 @@ print(f"Training on {train_size} samples, validating on {val_size} samples")
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 num_training_steps = 100
-scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=10, num_training_steps=num_training_steps)
+scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=num_training_steps)
 loss_fn = torch.nn.BCEWithLogitsLoss()
 
 
@@ -66,10 +66,10 @@ except:
 with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
     for i in tqdm(range(last_model,num_training_steps)):
         model.train()
-        optimizer.zero_grad()
         #iter over the training data by batch
         with tqdm(total=len(train_dataloader), leave=False, desc="Iteration over batches") as pbar2:
             for batch in train_dataloader:
+                optimizer.zero_grad()
                 inputs = batch['input_ids'].to(device)
                 labels = batch['labels'].to(device)
                 #add labels at the end of inputs
@@ -81,9 +81,10 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
                 loss = loss_fn(logits, labels)
                 loss.backward()
                 optimizer.step()
-                scheduler.step()
                 pbar2.update(1)
                 pbar2.set_postfix({"loss": loss.item()})
+            scheduler.step()
+
 
         model.eval()
         val_loss = 0
@@ -101,7 +102,7 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
                 logits = torch.sigmoid(logits)
                 preds = (logits > 0.5).float()
                 val_accuracy += (preds == labels).float().sum().item()
-        val_loss /= val_size
+        val_loss /= len(val_dataloader)
         val_accuracy /= val_size
         #saving the model
         torch.save(model.state_dict(), f"{saving_folder}/model_{i}.pt")

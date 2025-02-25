@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 from transformers import get_cosine_schedule_with_warmup
 
-dataset = torch.load('src/imdb/IMDBDataset.pt')
+dataset = torch.load('src/twitter/twitter.pt')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -19,8 +19,8 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-hidden_dim = 256
-vocab_size = tokenizer.vocab_size
+hidden_dim = 50
+vocab_size = 400000
 num_layers = 2
 window_size = 8
 ratio = 3
