@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-from nltk.tokenize import word_tokenize
 from tqdm import tqdm
 from keras.preprocessing.text import Tokenizer
 from twitter.TwitterDataset import TwitterDataset
@@ -99,7 +98,7 @@ max_len = max(len(sentence) for sentence in tokenized_text) + 1 #adding 1 for th
 
 cls_token = word_index['cls']
 padding_token = 0
-print("Converting text to embeddings")
+print("Preparing pad and masks")
 for i in tqdm(range(len(tokenized_text))):
     sentence = tokenized_text[i] + [cls_token]
     label = labels[i]

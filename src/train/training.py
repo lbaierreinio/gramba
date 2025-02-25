@@ -6,28 +6,34 @@ import torch.optim.lr_scheduler as lr_scheduler
 from tqdm import tqdm
 import os
 
-dataset = torch.load('src/twitter/twitter.pt')
+BATCH_SIZE = 64 #batch size 512 for twitter and 64 for imdb
+
+
+#dataset = torch.load('src/twitter/twitter.pt') #for twitter
+dataset = torch.load('src/imdb/IMDBDataset.pt') #for imdb
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
 train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-train_dataloader = DataLoader(train_dataset, batch_size=512, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=512, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True) 
+val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-hidden_dim = 50
-vocab_size = 400000
-num_layers = 10
-window_size = 5
+hidden_dim = 300
+#vocab_size = 335508  #for twitter
+vocab_size = 100948 #for imdb
+num_layers = 1
+window_size = 8
 ratio = 4
 pad_token_id = 0
-num_classes = 1
-bidirectional = False
-expansion_factor = 4
+bidirectional = True
+expansion_factor = 1
 saving_folder = 'src/train/saving_train'
+#embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32) #for twitter
+embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32) #for imdb
 
-model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, expansion_factor=expansion_factor, bidirectional=False, num_classes=num_classes).to(device)
+model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, embedding_matrix, num_layers, window_size, pad_token_id, ratio=ratio, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
 
 print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
@@ -37,7 +43,6 @@ print(f"Vocab Size: {vocab_size}")
 print(f"Num Layers: {num_layers}")
 print(f"Window Size: {window_size}")
 print(f"Ratio: {ratio}")
-print(f"Num Classes: {num_classes}")
 print(f"Expansion Factor: {expansion_factor}")
 print(f"Bidirectional: {bidirectional}")
 print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
