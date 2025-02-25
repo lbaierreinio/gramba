@@ -68,3 +68,5 @@ src/twitter/glove.6B.zip
 src/twitter/word2vec.model
 src/twitter/word2vec.model.syn1neg.npy
 src/twitter/word2vec.model.wv.vectors.npy
+src/twitter/word_index.json
+src/twitter/embedding_matrix.npy
