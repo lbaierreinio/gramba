@@ -9,7 +9,14 @@ import numpy as np
 
 num_training_steps = 10
 EMBEDDING_DIM = 300
-VOCAB_SIZE = 335508
+#VOCAB_SIZE = 335508 #for twitter
+VOCAB_SIZE = 100948 #for imdb
+#dataset = torch.load('src/twitter/twitter.pt') # for twitter
+dataset = torch.load('src/imdb/IMDBDataset.pt') #for imdb
+#embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32) #for twitter
+embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32) #for imdb
+
+
 
 class TextClassificationModel(nn.Module):
     def __init__(self, embedding_matrix):
@@ -38,7 +45,6 @@ class TextClassificationModel(nn.Module):
         return x
 
 #Load embedding matrix
-embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32)
 model = TextClassificationModel(embedding_matrix)
 
 
@@ -51,7 +57,6 @@ criterion = nn.BCELoss()  # Binary Cross Entropy Loss
 # Define learning rate scheduler
 scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, min_lr=0.01, verbose=True)
 
-dataset = torch.load('src/twitter/twitter.pt')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
