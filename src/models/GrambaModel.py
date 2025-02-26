@@ -13,10 +13,10 @@ class GrambaModel(nn.Module):
                 self.layers.append(GrambaBlock(embedding_dim, expansion_factor, bidirectional))
             self.layers.append(SWABlock(embedding_dim, window_size, pad_token_id))
 
-    def forward(self, x, mask=None):
+    def forward(self, x, mask=None, is_sequential=False):
         x = self.embedding(x)
 
         for layer in self.layers:
-            x = layer(x, mask)
+            x = layer(x, mask, is_sequential=is_sequential)
         
         return x

@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from layers.Gramba import Gramba
 
@@ -12,9 +13,15 @@ class GrambaBlock(nn.Module):
             nn.Linear(hidden_dim * expansion_factor, hidden_dim),
         )
 
-    def forward(self, x, mask=None):
+    def forward(self, x, mask=None, is_sequential=False):
         # Gramba with residual connection
-        x = x + self.gramba(x, mask)
+        if is_sequential:
+            h_prev = torch.zeros((x.shape[0], x.shape[2])).to(x.device) # Initial hidden state
+            for t in range(x.shape[1]): # Iterate over sequence length dimension
+                x_t, h_prev = self.gramba(x[:, t], mask=mask[:, t], h_prev=h_prev)
+                x[:, t] = x_t
+        else: 
+            x = x + self.gramba(x, mask)
         x = self.ln(x)
 
         # MLP 1 with residual connection
