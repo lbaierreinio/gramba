@@ -5,7 +5,7 @@ from transformers import BertTokenizer
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 from transformers import get_cosine_schedule_with_warmup
 
-dataset = torch.load('imdb_dataset.pt')
+dataset = torch.load('src/twitter/twitter.pt')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -19,13 +19,13 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-hidden_dim = 256
-vocab_size = tokenizer.vocab_size
+hidden_dim = 50
+vocab_size = 400000
 num_layers = 2
 window_size = 8
 ratio = 3
 pad_token_id = 0
-num_classes = 2
+num_classes = 1
 bidirectional = False
 expansion_factor = 4
 
@@ -48,10 +48,10 @@ print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 num_training_steps = 100
 scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=10, num_training_steps=num_training_steps)
-loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = torch.nn.BCEWithLogitsLoss()
 
 inputs = batch['input_ids'].to(device)
-labels = batch['labels'].to(device)
+labels = batch['labels'].to(device).float()
 mask = ~batch['attention_mask'].bool().to(device)
 
 
@@ -59,6 +59,7 @@ model.train()
 for i in range(num_training_steps):
     optimizer.zero_grad()
     logits = model(inputs, mask)
+    logits = logits.squeeze(-1)
     loss = loss_fn(logits, labels)
     loss.backward()
     optimizer.step()

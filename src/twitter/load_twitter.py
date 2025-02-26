@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from tqdm import tqdm
 from keras.preprocessing.text import Tokenizer
-from imdb.IMDBDataset import IMDBDataset
+from twitter.TwitterDataset import TwitterDataset
 
 EMBEDDING_SIZE = 300
 GLOVE_PATH = 'src/twitter/glove.6B.'+str(EMBEDDING_SIZE)+'d.txt'  # Assurez-vous que le fichier GloVe est présent
@@ -34,8 +34,11 @@ stop_words = set(stopwords.words('english'))
 stemmer = SnowballStemmer('english')
 text_cleaning_re = "@\S+|https?:\S+|http?:\S|[^A-Za-z0-9]+"
 
-data = pd.read_csv(args.dataset_in_path)
-data['sentiment'] = data['sentiment'].map({"negative": 0, "positive": 1})  # Convert sentiment labels
+data = pd.read_csv(args.dataset_in_path, encoding='latin', header=None)
+data.columns = ['sentiment', 'id', 'date', 'query', 'user_id', 'text']
+data = data[data['sentiment'] != 2]
+data['sentiment'] = data['sentiment'].map({0: 0, 4: 1})  # Convert sentiment labels
+data = data.drop(['id', 'date', 'query', 'user_id'], axis=1)
 print(data.head())
 print(data['sentiment'].value_counts())
 
@@ -50,24 +53,22 @@ def clean_text(text, stem=False):
     tokens = [stemmer.stem(token) if stem else token for token in text.split() if token not in stop_words]
     return " ".join(tokens)
 
-data.review = data.review.apply(lambda x: clean_text(x))
-print(data.head())
+data.text = data.text.apply(lambda x: clean_text(x))
 
 print("Tokenizing text")
 tokenizer = Tokenizer()
-tokenizer.fit_on_texts(data.review)
-tokenizer.word_index['cls'] = len(tokenizer.word_index) + 1
+tokenizer.fit_on_texts(data.text)
 
 word_index = tokenizer.word_index
 #save word index
-with open('src/imdb/word_index.json', 'w') as f:
+with open('src/twitter/word_index.json', 'w') as f:
     json.dump(word_index, f)
 vocab_size = len(tokenizer.word_index) + 1
 print("Vocabulary Size :", vocab_size)
 #save vocab size
-with open('src/imdb/vocab_size.txt', 'w') as f:
+with open('src/twitter/vocab_size.txt', 'w') as f:
     f.write(str(vocab_size))
-tokenized_text = tokenizer.texts_to_sequences(data.review)
+tokenized_text = tokenizer.texts_to_sequences(data.text)
 labels = data.sentiment.tolist()
 
 # Load GloVe embeddings
@@ -89,7 +90,7 @@ for word, i in word_index.items():
     embedding_matrix[i] = embedding_vector
 
 #save embedding matrix
-np.save('src/imdb/embedding_matrix.npy', embedding_matrix)
+np.save('src/twitter/embedding_matrix.npy', embedding_matrix)
 
 tokenized_padded_text = []
 masks = []
@@ -110,8 +111,8 @@ for i in tqdm(range(len(tokenized_text))):
 tokenized_padded_text = np.array(tokenized_padded_text)
 masks = np.array(masks)
 
-tokenized_padded_review = torch.tensor(tokenized_padded_text, dtype=torch.long)
+tokenized_padded_tweets = torch.tensor(tokenized_padded_text, dtype=torch.long)
 masks_torch = torch.tensor(masks, dtype=torch.bool)
 
-IMDB_dataset = IMDBDataset(tokenized_padded_review, labels, masks_torch)
-torch.save(IMDB_dataset, args.dataset_out_path)
+twitter_dataset = TwitterDataset(tokenized_padded_tweets, labels, masks_torch)
+torch.save(twitter_dataset, args.dataset_out_path)

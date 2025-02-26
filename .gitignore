@@ -64,3 +64,12 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+src/twitter/glove.6B.zip
+src/twitter/word2vec.model
+src/twitter/word2vec.model.syn1neg.npy
+src/twitter/word2vec.model.wv.vectors.npy
+src/twitter/word_index.json
+src/twitter/embedding_matrix.npy
+src/imdb/embedding_matrix.npy
+.gitignore
+src/imdb/word_index.json
