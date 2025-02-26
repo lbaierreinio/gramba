@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader
 
-dataset = torch.load('src/imdb/IMDBDataset.pt')
+dataset = torch.load('src/twitter/twitter.pt')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
