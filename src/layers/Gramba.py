@@ -17,7 +17,7 @@ class Gramba(nn.Module):
             nn.SiLU()
         )
 
-        self.minGRU = MinGRU(self.expansion_dim, self.expansion_dim)
+        self.minGRU = BiMinGRU(self.expansion_dim, self.expansion_dim) if bidirectional else MinGRU(self.expansion_dim, self.expansion_dim)
         self.linear_out = nn.Linear(self.expansion_dim, hidden_dim)
 
     def forward(self, x, mask=None, h_prev=None):
