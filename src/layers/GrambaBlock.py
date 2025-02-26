@@ -21,7 +21,7 @@ class GrambaBlock(nn.Module):
                 if mask is not None:
                     x_t, h_prev = self.gramba(x[:, t], mask=mask[:, t], h_prev=h_prev)
                 else: 
-                    x_t, h_prev = self.gramba(x[:, t], mask=mask[:, t], h_prev=h_prev)
+                    x_t, h_prev = self.gramba(x[:, t], h_prev=h_prev)
                 x[:, t] = x_t
         else: 
             x = x + self.gramba(x, mask)
