@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from layers.MinGRU import MinGRU
 from layers.BiMinGRU import BiMinGRU
@@ -20,15 +21,20 @@ class Gramba(nn.Module):
         self.minGRU = BiMinGRU(self.expansion_dim, self.expansion_dim) if bidirectional else MinGRU(self.expansion_dim, self.expansion_dim)
         self.linear_out = nn.Linear(self.expansion_dim, hidden_dim)
 
-    def forward(self, x, mask=None, h_prev=None):
+    def forward(self, x, mask=None, is_sequential=False):
         x_in = self.projection_one(x)
         x_skip = self.projection_two(x)
-        if h_prev is not None:
-            h = self.minGRU(x_in, mask=mask, h_prev=h_prev)
-        else:
-            h = self.minGRU(x_in, mask=mask)
+        if is_sequential:
+            h_prev = torch.zeros((x_in.shape[0], x_in.shape[2])).to(x_in.device) # Initial hidden state
+            for t in range(x.shape[1]): # Iterate over sequence length dimension
+                if mask is not None:
+                    h_prev = self.minGRU(x_in[:, t], mask=mask[:, t], h_prev=h_prev)
+                else: 
+                    h_prev = self.minGRU(x_in[:, t], h_prev=h_prev)
+                x_in[:, t] = h_prev
+        else: 
+            x_in = self.minGRU(x_in, mask=mask)
         
-        x_out = self.linear_out(x_skip + h)
-        if h_prev is not None:
-            return x_out, h
+        x_out = self.linear_out(x_skip + x_in)
+
         return x_out
