@@ -6,11 +6,21 @@ import torch.optim.lr_scheduler as lr_scheduler
 from tqdm import tqdm
 import os
 
-BATCH_SIZE = 64 #batch size 512 for twitter and 64 for imdb
+######## CHECK BEFORE RUNNING ########
+BATCH_SIZE = 512 #batch size 512 for twitter and 64 for imdb
 
+dataset = torch.load('src/twitter/twitter.pt') #for twitter
+#dataset = torch.load('src/imdb/IMDBDataset.pt') #for imdb
 
-#dataset = torch.load('src/twitter/twitter.pt') #for twitter
-dataset = torch.load('src/imdb/IMDBDataset.pt') #for imdb
+embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32) #for twitter
+#embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32) #for imdb
+
+hidden_dim = 50
+vocab_size = 335508  #for twitter
+#vocab_size = 100948 #for imdb
+
+#####################################
+
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -20,9 +30,6 @@ val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-hidden_dim = 300
-#vocab_size = 335508  #for twitter
-vocab_size = 100948 #for imdb
 num_layers = 1
 window_size = 8
 ratio = 4
@@ -30,8 +37,6 @@ pad_token_id = 0
 bidirectional = True
 expansion_factor = 1
 saving_folder = 'src/train/saving_train'
-#embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32) #for twitter
-embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32) #for imdb
 
 model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, embedding_matrix, num_layers, window_size, pad_token_id, ratio=ratio, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
 
