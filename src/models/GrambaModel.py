@@ -5,10 +5,10 @@ from layers.SWABlock import SWABlock
 class GrambaModel(nn.Module):
     def __init__(self, embedding_dim, vocab_size, num_layers, window_size, embedding_weights=None, pad_token_id=0, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
         super().__init__()
-        if not embedding_weights:
-            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id)
-        else:
+        if embedding_weights:
             self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id, _weight=embedding_weights, _freeze=True)
+        else:
+            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id)
         self.layers = nn.ModuleList()
 
         for _ in range(num_layers):
