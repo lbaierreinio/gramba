@@ -12,8 +12,8 @@ from tqdm import tqdm
 from keras.preprocessing.text import Tokenizer
 from twitter.TwitterDataset import TwitterDataset
 
-EMBEDDING_SIZE = 300
-GLOVE_PATH = 'src/twitter/glove.6B.'+str(EMBEDDING_SIZE)+'d.txt'  # Assurez-vous que le fichier GloVe est présent
+EMBEDDING_SIZE = 50
+GLOVE_PATH = 'src/twitter/glove.6B.'+str(EMBEDDING_SIZE)+'d.txt'  # Make sure that the GloVe file is there
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_in_path', type=str,
@@ -29,7 +29,7 @@ if not os.path.exists(args.dataset_in_path):
     raise Exception('Dataset path does not exist')
 
 nltk.download('stopwords')
-nltk.download('punkt')  # Correction du nom du dataset
+nltk.download('punkt')  # Correct dataset name
 stop_words = set(stopwords.words('english'))
 stemmer = SnowballStemmer('english')
 text_cleaning_re = "@\S+|https?:\S+|http?:\S|[^A-Za-z0-9]+"
