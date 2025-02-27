@@ -1,4 +1,4 @@
-name: gramba11
+name: gramba
 channels:
   - conda-forge
   - defaults
