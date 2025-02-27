@@ -9,7 +9,9 @@ class TestGrambaModel:
 
         x = torch.randint(0, vocab_size, (16, 10))
 
-        x_out = gramba_model(x)
+        mask = torch.ones_like(x).bool()
+
+        x_out = gramba_model(x, mask)
 
         # assert none are nan
         assert not torch.any(torch.isnan(x_out))
