@@ -9,6 +9,7 @@ from transformers import BertTokenizer
 
 is_twitter = 1
 is_save = False
+from tqdm import tqdm
 
 ######## CHECK BEFORE RUNNING ########
 if is_twitter: 
