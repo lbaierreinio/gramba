@@ -4,9 +4,9 @@ import torch.nn.functional as F
 
 
 class GrambaSequenceClassificationModel(nn.Module):
-    def __init__(self, embedding_dim, vocab_size, embedding_weights, num_layers, window_size, pad_token_id, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
+    def __init__(self, embedding_dim, vocab_size, num_layers, window_size, pad_token_id,  embedding_weights=None, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
         super().__init__()
-        self.gramba_model = GrambaModel(embedding_dim, vocab_size, embedding_weights, num_layers, window_size, pad_token_id, attention_probs_dropout_prob, ratio, expansion_factor, bidirectional)
+        self.gramba_model = GrambaModel(embedding_dim, vocab_size, num_layers, window_size, pad_token_id, embedding_weights, attention_probs_dropout_prob, ratio, expansion_factor, bidirectional)
         self.classifier = nn.Linear(embedding_dim, 1)
 
     def forward(self, x, mask=None, is_sequential=False):
