@@ -86,7 +86,6 @@ dependencies:
       - iniconfig==2.0.0
       - jinja2==3.1.4
       - joblib==1.4.2
-      - keras==2.13.1
       - kiwisolver==1.4.7
       - libclang==18.1.1
       - linformer-pytorch==0.19.3
