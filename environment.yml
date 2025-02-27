@@ -1,11 +1,8 @@
-name: gramba11
+name: gramba
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - tensorflow
-  - pytorch
-  - typing-extensions
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
   - backcall=0.2.0=pyh9f0ad1d_0
@@ -144,16 +141,19 @@ dependencies:
       - sympy==1.13.3
       - tensorboard==2.13.0
       - tensorboard-data-server==0.7.2
+      - tensorflow==2.13.1
       - tensorflow-estimator==2.13.0
       - tensorflow-io-gcs-filesystem==0.34.0
       - termcolor==2.4.0
       - threadpoolctl==3.5.0
       - tokenizers==0.20.3
       - tomli==2.2.1
+      - torch==2.4.1
       - torchtext==0.18.0
       - tqdm==4.67.1
       - transformers==4.46.3
       - triton==3.0.0
+      - typing-extensions==4.5.0
       - tzdata==2024.2
       - urllib3==2.2.3
       - werkzeug==3.0.6
