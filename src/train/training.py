@@ -4,20 +4,30 @@ from torch.utils.data import DataLoader
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 import torch.optim.lr_scheduler as lr_scheduler
 from tqdm import tqdm
+import argparse
 import os
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=int,
+                    help='0 - Twitter, 1 - IMDB')
+
+args = parser.parse_args()
+
+is_twitter = args.dataset == 0
+
 ######## CHECK BEFORE RUNNING ########
-BATCH_SIZE = 512 #batch size 512 for twitter and 64 for imdb
-
-dataset = torch.load('src/twitter/twitter.pt') #for twitter
-#dataset = torch.load('src/imdb/IMDBDataset.pt') #for imdb
-
-embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32) #for twitter
-#embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32) #for imdb
+if is_twitter: 
+    BATCH_SIZE = 512
+    dataset = torch.load('src/twitter/twitter.pt')
+    embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32)
+    vocab_size = 335508
+else:
+    BATCH_SIZE = 64
+    dataset = torch.load('src/imdb/IMDBDataset.pt')
+    embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32)
+    vocab_size = 100948
 
 hidden_dim = 50
-vocab_size = 335508  #for twitter
-#vocab_size = 100948 #for imdb
 
 #####################################
 
@@ -34,7 +44,7 @@ num_layers = 1
 window_size = 8
 ratio = 4
 pad_token_id = 0
-bidirectional = True
+bidirectional = False
 expansion_factor = 1
 saving_folder = 'src/train/saving_train'
 
