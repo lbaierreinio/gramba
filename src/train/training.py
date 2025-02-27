@@ -7,7 +7,7 @@ from models.GrambaSequenceClassificationModel import GrambaSequenceClassificatio
 import torch.optim.lr_scheduler as lr_scheduler
 from transformers import BertTokenizer
 
-is_twitter = 1
+is_twitter = 0
 is_save = False
 from tqdm import tqdm
 
@@ -17,7 +17,7 @@ if is_twitter:
     dataset = torch.load('src/twitter/twitter.pt')
 else:
     BATCH_SIZE = 64
-    dataset = torch.load('src/imdb/IMDBDataset.pt')
+    dataset = torch.load('src/imdb/imdb.pt')
 
 hidden_dim = 50
 
@@ -41,7 +41,7 @@ bidirectional = False
 expansion_factor = 1
 saving_folder = 'src/train'
 
-model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, embedding_matrix, num_layers, window_size, pad_token_id, ratio=ratio, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
+model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
 
 print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
