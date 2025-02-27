@@ -39,7 +39,7 @@ ratio = 4
 pad_token_id = 0
 bidirectional = False
 expansion_factor = 1
-saving_folder = 'src/train'
+saving_folder = 'src/train/saving_train'
 
 model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
 
