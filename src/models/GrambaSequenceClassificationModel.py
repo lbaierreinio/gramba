@@ -11,8 +11,9 @@ class GrambaSequenceClassificationModel(nn.Module):
         self.fc2 = nn.Linear(512, 512)
         self.fc3 = nn.Linear(512, 1)
 
-    def forward(self, x, mask=None):
-        x = self.gramba_model(x, mask) # B_S, S_L, H_D
+    def forward(self, x, mask=None, is_sequential=False):
+        assert not (is_sequential and self.bidirectional), "Bidirectional models are not supported in sequential mode."
+        x = self.gramba_model(x, mask, is_sequential=is_sequential) # B_S, S_L, H_D
         x = x[:, -1, :]  # Should be the CLS token
         x = F.relu(self.fc1(x))
         x = F.dropout(x, 0.5, training=self.training)

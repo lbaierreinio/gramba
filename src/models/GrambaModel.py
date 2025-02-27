@@ -3,9 +3,12 @@ from layers.GrambaBlock import GrambaBlock
 from layers.SWABlock import SWABlock
 
 class GrambaModel(nn.Module):
-    def __init__(self, embedding_dim, vocab_size, embedding_weights, num_layers, window_size, pad_token_id=0, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
+    def __init__(self, embedding_dim, vocab_size, num_layers, window_size, embedding_weights=None, pad_token_id=0, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
         super().__init__()
-        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id, _weight=embedding_weights, _freeze=True)
+        if embedding_weights:
+            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id, _weight=embedding_weights, _freeze=True)
+        else:
+            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id)
         self.layers = nn.ModuleList()
 
         for _ in range(num_layers):
@@ -13,10 +16,10 @@ class GrambaModel(nn.Module):
                 self.layers.append(GrambaBlock(embedding_dim, expansion_factor, bidirectional))
             self.layers.append(SWABlock(embedding_dim, window_size, pad_token_id))
 
-    def forward(self, x, mask=None):
+    def forward(self, x, mask=None, is_sequential=False):
         x = self.embedding(x)
 
         for layer in self.layers:
-            x = layer(x, mask)
+            x = layer(x, mask, is_sequential=is_sequential)
         
         return x
