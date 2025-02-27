@@ -22,7 +22,7 @@ class TestGrambaBlock:
         gramba_block = GrambaBlock(hidden_dim, expansion_factor, bidirectional)
 
         x = torch.randn(16, 10, hidden_dim)
-        # mask = torch.randint(0, 2, (16, 10)).bool() # TODO: Fix masking
+        # TODO: Fix masking
 
         x_out_p = gramba_block(x, is_sequential = False)
         x_out_s = gramba_block(x, is_sequential = True)

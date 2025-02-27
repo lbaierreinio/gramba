@@ -22,15 +22,13 @@ class Gramba(nn.Module):
         self.linear_out = nn.Linear(self.expansion_dim, hidden_dim)
 
     def forward(self, x, mask=None, is_sequential=False):
+        assert not (is_sequential and mask is not None), "Cannot use mask and is_sequential at the same time"
         x_in = self.projection_one(x)
         x_skip = self.projection_two(x)
         if is_sequential:
             h_prev = torch.zeros((x_in.shape[0], x_in.shape[2])).to(x_in.device) # Initial hidden state
             for t in range(x.shape[1]): # Iterate over sequence length dimension
-                if mask is not None:
-                    h_prev = self.minGRU(x_in[:, t], mask=mask[:, t], h_prev=h_prev)
-                else: 
-                    h_prev = self.minGRU(x_in[:, t], h_prev=h_prev)
+                h_prev = self.minGRU(x_in[:, t], h_prev=h_prev)
                 x_in[:, t] = h_prev
         else: 
             x_in = self.minGRU(x_in, mask=mask)
