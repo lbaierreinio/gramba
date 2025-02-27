@@ -15,7 +15,6 @@ class TestGrambaBlock:
         assert not torch.any(torch.isnan(x_out))
 
         # assert the output shape is correct
-<<<<<<< HEAD
         assert x_out.shape == x.shape
     
     def test_gramba_block_modes(self):
@@ -38,8 +37,3 @@ class TestGrambaBlock:
 
         # assert parallel and sequential yield same results
         assert torch.allclose(x_out_s, x_out_p, rtol=1e-4, atol=1e-6)
-
-
-=======
-        assert x_out.shape == x.shape
->>>>>>> main
