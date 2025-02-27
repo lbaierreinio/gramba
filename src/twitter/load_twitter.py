@@ -39,8 +39,9 @@ data.columns = ['sentiment', 'id', 'date', 'query', 'user_id', 'text']
 data = data[data['sentiment'] != 2]
 data['sentiment'] = data['sentiment'].map({0: 0, 4: 1})  # Convert sentiment labels
 data = data.drop(['id', 'date', 'query', 'user_id'], axis=1)
-print(data.head())
-print(data['sentiment'].value_counts())
+data = data.head()
+#print(data.head())
+#print(data['sentiment'].value_counts())
 
 #keep only half of the dataset for faster training (with the same distribution of labels)
 # positive_data = data[data['sentiment'] == 1].sample(frac=0.5)
@@ -58,13 +59,13 @@ data.text = data.text.apply(lambda x: clean_text(x))
 print("Tokenizing text")
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
-tokenized_text = tokenizer(data.text.tolist(), padding=False, truncation=False, return_tensors="pt")
+tokenized_text = tokenizer(data.text.tolist(), padding=True, truncation=False, return_tensors="pt")
 
-word_index = tokenizer.word_index
+word_index = tokenizer.get_vocab()
 #save word index
 with open('src/twitter/word_index.json', 'w') as f:
     json.dump(word_index, f)
-vocab_size = len(tokenizer.word_index) + 1
+vocab_size = len(tokenizer.get_vocab()) + 1
 print("Vocabulary Size :", vocab_size)
 #save vocab size
 with open('src/twitter/vocab_size.txt', 'w') as f:
@@ -101,7 +102,6 @@ padding_token = 0
 print("Preparing pad and masks")
 for i in tqdm(range(len(tokenized_text))):
     sentence = tokenized_text[i] + [cls_token]
-    label = labels[i]
     mask = [padding_token] * (max_len - len(sentence)) + [1]*len(sentence)
     tokenized_padded_sentence = [padding_token] * (max_len - len(sentence)) + sentence
     #add the label at the end for the minGRU units
