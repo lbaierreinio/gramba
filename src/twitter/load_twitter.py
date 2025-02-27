@@ -9,7 +9,7 @@ import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from tqdm import tqdm
-from keras.preprocessing.text import Tokenizer
+from transformers import BertTokenizer
 from twitter.TwitterDataset import TwitterDataset
 
 EMBEDDING_SIZE = 50
@@ -56,8 +56,9 @@ def clean_text(text, stem=False):
 data.text = data.text.apply(lambda x: clean_text(x))
 
 print("Tokenizing text")
-tokenizer = Tokenizer()
-tokenizer.fit_on_texts(data.text)
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+tokenized_text = tokenizer(data.text.tolist(), padding=False, truncation=False, return_tensors="pt")
 
 word_index = tokenizer.word_index
 #save word index
@@ -68,7 +69,6 @@ print("Vocabulary Size :", vocab_size)
 #save vocab size
 with open('src/twitter/vocab_size.txt', 'w') as f:
     f.write(str(vocab_size))
-tokenized_text = tokenizer.texts_to_sequences(data.text)
 labels = data.sentiment.tolist()
 
 # Load GloVe embeddings
