@@ -78,9 +78,8 @@ with open(log_file, "w") as f: # this clears the existing logs
     f.write("Training hyperparamaters:\n")
     f.write(f"    {max_lr=}, {min_lr=}, {warmup_steps=}, {epochs=}, batch_size={B}\n")
     f.write(f"Model configurations:\n")
-    f.write(f"    {config.num_layers=}, {config.embedding_dim=}, {config.bidirectional=}\n")
-    f.write(f"    {model_size=}\n")
-    f.write(f"Training on task: {squad_version}\n")
+    f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
+    f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
 
 eval_every = 1 # Every n epochs, evaluate EM and F1
 
