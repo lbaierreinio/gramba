@@ -14,59 +14,45 @@ is_log = True
 ampere_gpu = True
 
 if is_twitter: 
-    BATCH_SIZE = 512
+    batch_size = 512
     dataset = torch.load('src/twitter/twitter.pt')
 else:
-    BATCH_SIZE = 64
+    batch_size = 64
     dataset = torch.load('src/imdb/imdb.pt')
 
-hidden_dim = 50
-
-embedding_matrix = torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32)
-vocab_size = BertTokenizer.from_pretrained('bert-base-uncased').vocab_size
-train_size = int(0.9 * len(dataset))
+split = 0.9
+train_size = int(split * len(dataset))
 val_size = len(dataset) - train_size
-
 train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True) 
-val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) 
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+ratio = 4
+hidden_dim = 50
 num_layers = 1
 window_size = 8
-ratio = 4
 pad_token_id = 0
 bidirectional = False
 expansion_factor = 1
 num_training_steps = 10
+vocab_size = BertTokenizer.from_pretrained('bert-base-uncased').vocab_size
 
 if ampere_gpu:
     torch.set_float32_matmul_precision("high") # use tf32 where possible
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+embedding_matrix = torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32)
 model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
-
-print(sum(p.numel() for p in model.parameters() if p.requires_grad))
-
-print("---Model Details---")
-print(f"Hidden Dim: {hidden_dim}")
-print(f"Vocab Size: {vocab_size}")
-print(f"Num Layers: {num_layers}")
-print(f"Window Size: {window_size}")
-print(f"Ratio: {ratio}")
-print(f"Expansion Factor: {expansion_factor}")
-print(f"Bidirectional: {bidirectional}")
-print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
-print(f"Training on {train_size} samples, validating on {val_size} samples")
+parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=num_training_steps)
 loss_fn = torch.nn.BCEWithLogitsLoss()
 
 with open("train_log.txt", "w") as file:
-    file.write(f"# expansion_factor={expansion_factor} hidden_dim={hidden_dim} num_layers={num_layers} ratio={ratio} window_size={window_size} bidirectional={bidirectional} num_training_steps={num_training_steps}\n")
+    file.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} dataset_size={len(dataset)} train_split={split} batch_size={batch_size} parameters={parameters} expansion_factor={expansion_factor} hidden_dim={hidden_dim}\n")
+    file.write(f"# num_layers={num_layers} ratio={ratio} window_size={window_size} bidirectional={bidirectional} num_training_steps={num_training_steps} vocab_size={vocab_size}\n")
     file.write("epoch,train_loss,val_loss,val_accuracy,epoch_time,tokens/s\n")
-
 
 for i in range(num_training_steps):
     model.train()
@@ -114,10 +100,9 @@ for i in range(num_training_steps):
             preds = (logits > 0.5).float()
             val_accuracy += (preds == labels).float().sum().item()
     val_loss /= len(val_dataloader)
-    val_accuracy /= 5000
+    val_accuracy /= val_size
+
+    print(f"{i},{round(train_loss, 4)},{round(val_loss, 4)},{round(val_accuracy,2)},{t1-t0},{round(tokens_processed/(t1-t0), 2)}\n")
 
     with open("train_log.txt", "a") as file:
         file.write(f"{i},{round(train_loss, 4)},{round(val_loss, 4)},{round(val_accuracy,2)},{t1-t0},{round(tokens_processed/(t1-t0), 2)}\n")
-
-
-
