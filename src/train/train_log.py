@@ -1,11 +1,10 @@
 import time
 import torch
 import numpy as np
-from tqdm import tqdm
-from torch.utils.data import DataLoader
-from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
-import torch.optim.lr_scheduler as lr_scheduler
 from transformers import BertTokenizer
+from torch.utils.data import DataLoader
+import torch.optim.lr_scheduler as lr_scheduler
+from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 
 is_twitter = 0
 is_save = False
