@@ -2,7 +2,6 @@ import torch.nn as nn
 from layers.GrambaBlock import GrambaBlock
 from layers.SWABlock import SWABlock
 from layers.HFLongFormerSelfAttentionBlock import HFLongFormerSelfAttentionBlock
-# from layers.AllenLongFormerSelfAttentionBlock import AllenLongFormerSelfAttentionBlock
 
 class GrambaModel(nn.Module):
     def __init__(self, embedding_dim, vocab_size, num_layers, window_size, pad_token_id=0, embedding_weights=None, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
