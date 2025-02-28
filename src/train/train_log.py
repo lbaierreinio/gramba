@@ -55,7 +55,7 @@ loss_fn = torch.nn.BCEWithLogitsLoss()
 
 with open("train_log.txt", "w") as file:
     file.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} dataset_size={len(dataset)} train_split={split} batch_size={batch_size} parameters={parameters} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
-    file.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} num_training_steps={num_training_steps} vocab_size={config.vocab_size}\n")
+    file.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} num_training_steps={num_training_steps} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
     file.write("epoch,train_loss,val_loss,val_accuracy,epoch_time,tokens/s\n")
 
 for i in range(num_training_steps):
