@@ -30,7 +30,8 @@ max_lr = 6e-4 * 3
 min_lr = max_lr * 0.1
 warmup_steps = 5000
 epochs = 30
-B = 32 # batch size
+B = 128 # batch size
+print(f"batch size{B}")
 
 #########################################################
 # Create model
@@ -43,9 +44,9 @@ config = GrambaConfig(
     embedding_dim=50,
     expansion_factor=4,
     num_layers=2,
-    window_size=32,
+    window_size=8,
     ratio=4,
-    bidirectional=True,
+    bidirectional=False,
     pad_token_id=tokenizer.pad_token_id
 )
 

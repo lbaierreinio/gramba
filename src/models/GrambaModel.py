@@ -13,6 +13,8 @@ class GrambaModel(nn.Module):
         GRU layers. Note that sequential mode does not support bidirectionality.
         """
         super().__init__()
+        attention_mechanisms = ['longformer']
+        assert config.attention_mechanism in ['longformer'], f"Attention mechanism must be one of {attention_mechanisms}"
         if config.embedding_weights is None:
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
@@ -26,7 +28,9 @@ class GrambaModel(nn.Module):
             for _ in range(config.num_layers):
                 for _ in range(config.ratio):
                     self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
-                self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id))
+                if config.attention_mechanism == 'longformer':
+                    self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id))
+                # TODO: Add different attention mechanisms here
 
     def forward(self, x, mask=None, is_sequential=False):
         x = self.embedding(x)
