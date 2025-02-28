@@ -16,7 +16,8 @@ class GrambaConfig:
             bidirectional: bool = False,
             pad_token_id: int = 0,
             vocab_size: int = 30522,
-            embedding_weights: torch.Tensor = None
+            embedding_weights: torch.Tensor = None,
+            attention_mechanism: str = 'longformer'
     ):
         """
         Initialize the configuration class for Gramba.
@@ -31,3 +32,4 @@ class GrambaConfig:
         self.pad_token_id = pad_token_id
         self.vocab_size = vocab_size
         self.embedding_weights = embedding_weights
+        self.attention_mechanism = attention_mechanism
