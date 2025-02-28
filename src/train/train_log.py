@@ -70,34 +70,32 @@ with open("train_log.txt", "w") as file:
 
 for i in range(num_training_steps):
     model.train()
-    #iter over the training data by batch
-    with tqdm(total=len(train_dataloader), leave=False, desc=f"Epoch {i}") as pbar:
-        train_loss = 0
-        tokens_processed = 0
-        t0 = time.time()
-        for batch in train_dataloader:
-            optimizer.zero_grad()
-            inputs = batch['input_ids'].to(device)
-            labels = batch['labels'].float().to(device)
-            #add labels at the end of inputs
-            mask = ~batch['attention_mask'].bool().to(device)
+    train_loss = 0
+    tokens_processed = 0
+    t0 = time.time()
+    for batch in train_dataloader:
+        optimizer.zero_grad()
+        inputs = batch['input_ids'].to(device)
+        labels = batch['labels'].float().to(device)
+        #add labels at the end of inputs
+        mask = ~batch['attention_mask'].bool().to(device)
 
-            #forward pass
-            logits = model(inputs, mask)
-            logits = logits.squeeze(-1)
-            loss = loss_fn(logits, labels)
-            loss.backward()
-            train_loss += loss.item()
-            tokens_processed += inputs.size(0) * inputs.size(1) # (b_s * s_l)
-            optimizer.step()
-            pbar.update(1)
-        scheduler.step()
-        if torch.cuda.is_available():
-            # wait for all cuda processes to finish to get accurate timing
-            torch.cuda.synchronize()
-        t1 = time.time()
+        #forward pass
+        logits = model(inputs, mask)
+        logits = logits.squeeze(-1)
+        loss = loss_fn(logits, labels)
+        loss.backward()
+        train_loss += loss.item()
+        tokens_processed += inputs.size(0) * inputs.size(1) # (b_s * s_l)
+        optimizer.step()
+    scheduler.step()
+    
+    if torch.cuda.is_available():
+        # wait for all cuda processes to finish to get accurate timing
+        torch.cuda.synchronize()
+    t1 = time.time()
 
-        train_loss /= len(train_dataloader)
+    train_loss /= len(train_dataloader)
 
     model.eval()
     val_loss = 0
@@ -118,7 +116,6 @@ for i in range(num_training_steps):
     val_loss /= len(val_dataloader)
     val_accuracy /= 5000
 
-    print(f"epoch: {i} train_loss: {round(train_loss, 2)}, val_loss: {round(val_loss, 2)}, val_accuracy: {round(val_accuracy, 2)} tokens/s: {round(tokens_processed/(t1-t0), 2)}")
     with open("train_log.txt", "a") as file:
         file.write(f"{i},{round(train_loss, 4)},{round(val_loss, 4)},{round(val_accuracy,2)},{t1-t0},{round(tokens_processed/(t1-t0), 2)}\n")
 
