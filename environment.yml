@@ -86,7 +86,6 @@ dependencies:
       - iniconfig==2.0.0
       - jinja2==3.1.4
       - joblib==1.4.2
-      - keras==2.13.1
       - kiwisolver==1.4.7
       - libclang==18.1.1
       - linformer-pytorch==0.19.3
@@ -139,11 +138,6 @@ dependencies:
       - smart-open==7.1.0
       - soupsieve==2.6
       - sympy==1.13.3
-      - tensorboard==2.13.0
-      - tensorboard-data-server==0.7.2
-      - tensorflow==2.13.1
-      - tensorflow-estimator==2.13.0
-      - tensorflow-io-gcs-filesystem==0.34.0
       - termcolor==2.4.0
       - threadpoolctl==3.5.0
       - tokenizers==0.20.3
@@ -153,7 +147,7 @@ dependencies:
       - tqdm==4.67.1
       - transformers==4.46.3
       - triton==3.0.0
-      - typing-extensions==4.5.0
+      - typing-extensions==4.12.0
       - tzdata==2024.2
       - urllib3==2.2.3
       - werkzeug==3.0.6

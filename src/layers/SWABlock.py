@@ -18,7 +18,7 @@ class SWABlock(nn.Module):
         self.window_size = window_size
         self.pad_token_id = pad_token_id
 
-    def forward(self, x, mask=None):
+    def forward(self, x, mask=None, is_sequential=False):
         # SWA with residual connection
         x = x +  self.swa(x, mask)
         x = self.ln(x)

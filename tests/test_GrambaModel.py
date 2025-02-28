@@ -4,15 +4,17 @@ from models.GrambaModel import GrambaModel
 
 class TestGrambaModel:
     def test_gramba_model(self):
-        hidden_dim, vocab_size, num_layers, window_size, pad_token_id = 32, 100, 2, 10, 0
+        hidden_dim, vocab_size, num_layers, window_size, pad_token_id = 32, 100, 2, 4, 0
         gramba_model = GrambaModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id)
 
-        x = torch.randint(0, vocab_size, (16, 10))
+        x = torch.randint(0, vocab_size, (32, 512))
 
-        x_out = gramba_model(x)
+        mask = torch.ones_like(x).bool()
+
+        x_out = gramba_model(x, mask)
 
         # assert none are nan
         assert not torch.any(torch.isnan(x_out))
 
         # assert the output shape is correct
-        assert x_out.shape == (16, 10, hidden_dim)
+        assert x_out.shape == (32, 512, hidden_dim)

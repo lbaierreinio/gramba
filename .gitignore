@@ -6,6 +6,8 @@ sinfo
 .ipynb_checkpoints/
 log/
 *.png
+*.npy
+*.zip
 
 #conda env
 bin/
