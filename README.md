@@ -1,4 +1,5 @@
 # Gramba
+Gramba is a hybrid Transformer RNN deep learning architecture that interleaves minGRU layers with sub-quadratic attention layers.
 
 ## Model Architecture
 ![gramba](https://github.com/user-attachments/assets/9bd19851-3ed5-4232-8f52-5727244b4faf)
