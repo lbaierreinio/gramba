@@ -9,7 +9,7 @@ from transformers import BertTokenizer
 
 is_twitter = 0
 is_save = False
-from tqdm import tqdm
+ampere_gpu = True
 
 ######## CHECK BEFORE RUNNING ########
 if is_twitter: 
@@ -41,7 +41,12 @@ bidirectional = False
 expansion_factor = 1
 saving_folder = 'src/train/saving_train'
 
+
+if ampere_gpu:
+    torch.set_float32_matmul_precision("high") # use tf32 where possible
+
 model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
+
 
 print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
