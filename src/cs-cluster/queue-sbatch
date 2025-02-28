@@ -1,1 +1,1 @@
-srun --unbuffered --partition=gpunodes -c 4 --mem=16GB --gres=gpu:1 --output=output.txt -t 1-0 stdbuf -oL cs-cluster/script.sh
+srun --unbuffered --partition=gpunodes -c 4 --mem=16GB --gres=gpu:1 --output=output.txt -t 1-0 stdbuf -oL src/cs-cluster/script.sh

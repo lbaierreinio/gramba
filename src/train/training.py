@@ -1,36 +1,29 @@
+import os
 import torch
 import numpy as np
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 import torch.optim.lr_scheduler as lr_scheduler
-from tqdm import tqdm
-import argparse
-import os
+from transformers import BertTokenizer
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=int,
-                    help='0 - Twitter, 1 - IMDB')
-
-args = parser.parse_args()
-
-is_twitter = args.dataset == 0
+is_twitter = 0
+is_save = False
+ampere_gpu = True
 
 ######## CHECK BEFORE RUNNING ########
 if is_twitter: 
     BATCH_SIZE = 512
     dataset = torch.load('src/twitter/twitter.pt')
-    embedding_matrix = torch.tensor(np.load('src/twitter/embedding_matrix.npy'), dtype=torch.float32)
-    vocab_size = 335508
 else:
     BATCH_SIZE = 64
-    dataset = torch.load('src/imdb/IMDBDataset.pt')
-    embedding_matrix = torch.tensor(np.load('src/imdb/embedding_matrix.npy'), dtype=torch.float32)
-    vocab_size = 100948
+    dataset = torch.load('src/imdb/imdb.pt')
 
 hidden_dim = 50
 
 #####################################
-
+embedding_matrix = torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32)
+vocab_size = BertTokenizer.from_pretrained('bert-base-uncased').vocab_size
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -48,7 +41,12 @@ bidirectional = False
 expansion_factor = 1
 saving_folder = 'src/train/saving_train'
 
-model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, embedding_matrix, num_layers, window_size, pad_token_id, ratio=ratio, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
+
+if ampere_gpu:
+    torch.set_float32_matmul_precision("high") # use tf32 where possible
+
+model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
+
 
 print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
@@ -68,7 +66,6 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 num_training_steps = 100
 scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=num_training_steps)
 loss_fn = torch.nn.BCEWithLogitsLoss()
-
 
 #load the last existing model if there is one
 try:
@@ -91,7 +88,7 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
             for batch in train_dataloader:
                 optimizer.zero_grad()
                 inputs = batch['input_ids'].to(device)
-                labels = batch['labels'].to(device)
+                labels = batch['labels'].float().to(device)
                 #add labels at the end of inputs
                 mask = ~batch['attention_mask'].bool().to(device)
 
@@ -105,14 +102,13 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
                 pbar2.set_postfix({"loss": loss.item()})
             scheduler.step()
 
-
         model.eval()
         val_loss = 0
         val_accuracy = 0
         with torch.no_grad():
             for batch in val_dataloader:
                 inputs = batch['input_ids'].to(device)
-                labels = batch['labels'].to(device)
+                labels = batch['labels'].float().to(device)
                 mask = ~batch['attention_mask'].bool().to(device)
                 logits = model(inputs, mask)
                 logits = logits.squeeze(-1)
@@ -124,11 +120,13 @@ with tqdm(total=num_training_steps-last_model, desc="Training") as pbar1:
                 val_accuracy += (preds == labels).float().sum().item()
         val_loss /= len(val_dataloader)
         val_accuracy /= val_size
-        #saving the model
-        torch.save(model.state_dict(), f"{saving_folder}/model_{i}.pt")
-        #saving acc and loss in log file
-        with open(f"{saving_folder}/log.txt", "a") as f:
-            f.write(f"{i} {val_loss} {val_accuracy}\n")
+
+        if is_save:
+            #saving the model
+            torch.save(model.state_dict(), f"{saving_folder}/model_{i}.pt")
+            #saving acc and loss in log file
+            with open(f"{saving_folder}/log.txt", "a") as f:
+                f.write(f"{i} {val_loss} {val_accuracy}\n")
 
         #update progress bar
         pbar1.set_postfix({"val_loss": val_loss, "val_accuracy": val_accuracy})
