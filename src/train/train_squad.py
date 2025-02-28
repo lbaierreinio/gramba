@@ -41,7 +41,7 @@ config = GrambaConfig(
     vocab_size=tokenizer.vocab_size,
     embedding_weights=torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32),
     embedding_dim=50,
-    expansion_factor=2,
+    expansion_factor=4,
     num_layers=2,
     window_size=32,
     ratio=4,
@@ -213,7 +213,7 @@ for i in range(epochs):
     # eval
     model.eval()
     with torch.no_grad():
-        should_get_predictions = i % eval_every == 0
+        should_get_predictions = False
         val_loss_accum = 0.0
 
         # As we're iterating through the batch, get predictions in the format {"id": ..., "prediction": ...}
