@@ -4,6 +4,9 @@ from longformer.longformer import LongformerConfig, LongformerSelfAttention
 
 class AllenLongFormerSelfAttentionBlock(nn.Module):
     def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=2):
+        """
+        NOTE: This implementation requires an early version of Transformers (e.g. 3.3.1)
+        """
         super().__init__()
         assert window_size % 2 == 0, "Window size must be even"
         self.pad_token_id = pad_token_id

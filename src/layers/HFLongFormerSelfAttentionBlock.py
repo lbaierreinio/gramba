@@ -5,6 +5,9 @@ from transformers.models.longformer.modeling_longformer import LongformerSelfAtt
 
 class HFLongFormerSelfAttentionBlock(nn.Module):
     def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=2):
+        """
+        NOTE: This implementation requires a later version of Transformers (e.g. 4.46.3)
+        """
         super().__init__()
         assert window_size > 2, "Window size must be greater than 2"
         self.pad_token_id = pad_token_id
