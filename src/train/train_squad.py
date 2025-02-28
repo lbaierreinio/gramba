@@ -214,7 +214,7 @@ for i in range(epochs):
     # eval
     model.eval()
     with torch.no_grad():
-        should_get_predictions = False
+        should_get_predictions = i > 0 and i % eval_every == 0
         val_loss_accum = 0.0
 
         # As we're iterating through the batch, get predictions in the format {"id": ..., "prediction": ...}
