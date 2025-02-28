@@ -2,10 +2,11 @@ import os
 import torch
 import numpy as np
 from tqdm import tqdm
-from torch.utils.data import DataLoader
-from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
-import torch.optim.lr_scheduler as lr_scheduler
 from transformers import BertTokenizer
+from torch.utils.data import DataLoader
+from models.GrambaConfig import GrambaConfig
+import torch.optim.lr_scheduler as lr_scheduler
+from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 
 is_twitter = 0
 is_save = False
@@ -19,11 +20,7 @@ else:
     BATCH_SIZE = 64
     dataset = torch.load('src/imdb/imdb.pt')
 
-hidden_dim = 50
-
 #####################################
-embedding_matrix = torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32)
-vocab_size = BertTokenizer.from_pretrained('bert-base-uncased').vocab_size
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 
@@ -33,31 +30,35 @@ val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-num_layers = 1
-window_size = 8
-ratio = 4
-pad_token_id = 0
-bidirectional = False
-expansion_factor = 1
+config = GrambaConfig(
+    num_classes=1,
+    vocab_size=BertTokenizer.from_pretrained('bert-base-uncased').vocab_size,
+    embedding_weights=torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32),
+    embedding_dim=50,
+    expansion_factor=1,
+    num_layers=1,
+    window_size=8,
+    ratio=4,
+    bidirectional=False,
+    pad_token_id=0
+)
+
 saving_folder = 'src/train/saving_train'
 
 
 if ampere_gpu:
     torch.set_float32_matmul_precision("high") # use tf32 where possible
 
-model = GrambaSequenceClassificationModel(hidden_dim, vocab_size, num_layers, window_size, pad_token_id, ratio=ratio, embedding_weights=embedding_matrix, expansion_factor=expansion_factor, bidirectional=bidirectional).to(device)
-
-
-print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+model = GrambaSequenceClassificationModel(config).to(device)
 
 print("---Model Details---")
-print(f"Hidden Dim: {hidden_dim}")
-print(f"Vocab Size: {vocab_size}")
-print(f"Num Layers: {num_layers}")
-print(f"Window Size: {window_size}")
-print(f"Ratio: {ratio}")
-print(f"Expansion Factor: {expansion_factor}")
-print(f"Bidirectional: {bidirectional}")
+print(f"Hidden Dim: {config.embedding_dim}")
+print(f"Vocab Size: {config.vocab_size}")
+print(f"Num Layers: {config.num_layers}")
+print(f"Window Size: {config.window_size}")
+print(f"Ratio: {config.ratio}")
+print(f"Expansion Factor: {config.expansion_factor}")
+print(f"Bidirectional: {config.bidirectional}")
 print(f"Num Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 print(f"Training on {train_size} samples, validating on {val_size} samples")
 

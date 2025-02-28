@@ -1,21 +1,32 @@
 import torch.nn as nn
 from layers.GrambaBlock import GrambaBlock
-from layers.SWABlock import SWABlock
 from layers.HFLongFormerSelfAttentionBlock import HFLongFormerSelfAttentionBlock
 
 class GrambaModel(nn.Module):
-    def __init__(self, embedding_dim, vocab_size, num_layers, window_size, pad_token_id=0, embedding_weights=None, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
+    def __init__(self, config):
+        """
+        Initialize the Gramba model. Note that if the ratio is 0, 
+        the attention mechanism will be omitted, and the model will
+        consist of num_layers of GrambaBlocks only. If embedding weights 
+        are provided, the model will use them to initialize the embedding
+        layer. If bidirectional is True, the model will use bidirectional
+        GRU layers. Note that sequential mode does not support bidirectionality.
+        """
         super().__init__()
-        if embedding_weights is None:
-            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id)
+        if config.embedding_weights is None:
+            self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
-            self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_token_id, _weight=embedding_weights, _freeze=True)
+            self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id, _weight=config.embedding_weights, _freeze=True)
         self.layers = nn.ModuleList()
 
-        for _ in range(num_layers):
-            for _ in range(ratio):
-                self.layers.append(GrambaBlock(embedding_dim, expansion_factor, bidirectional))
-            self.layers.append(HFLongFormerSelfAttentionBlock(embedding_dim, window_size, pad_token_id))
+        if config.ratio == 0:
+            for _ in range(config.num_layers):
+                self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
+        else:
+            for _ in range(config.num_layers):
+                for _ in range(config.ratio):
+                    self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
+                self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id))
 
     def forward(self, x, mask=None, is_sequential=False):
         x = self.embedding(x)
