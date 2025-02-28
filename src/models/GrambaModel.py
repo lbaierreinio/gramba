@@ -1,8 +1,8 @@
 import torch.nn as nn
 from layers.GrambaBlock import GrambaBlock
 from layers.SWABlock import SWABlock
-# from layers.HFLongFormerSelfAttentionBlock import HFLongFormerSelfAttentionBlock
-from layers.AllenLongFormerSelfAttentionBlock import AllenLongFormerSelfAttentionBlock
+from layers.HFLongFormerSelfAttentionBlock import HFLongFormerSelfAttentionBlock
+# from layers.AllenLongFormerSelfAttentionBlock import AllenLongFormerSelfAttentionBlock
 
 class GrambaModel(nn.Module):
     def __init__(self, embedding_dim, vocab_size, num_layers, window_size, pad_token_id=0, embedding_weights=None, attention_probs_dropout_prob=0.3, ratio=2, expansion_factor=4, bidirectional=False):
@@ -16,7 +16,7 @@ class GrambaModel(nn.Module):
         for _ in range(num_layers):
             for _ in range(ratio):
                 self.layers.append(GrambaBlock(embedding_dim, expansion_factor, bidirectional))
-            self.layers.append(AllenLongFormerSelfAttentionBlock(embedding_dim, window_size, pad_token_id))
+            self.layers.append(HFLongFormerSelfAttentionBlock(embedding_dim, window_size, pad_token_id))
 
     def forward(self, x, mask=None, is_sequential=False):
         x = self.embedding(x)
