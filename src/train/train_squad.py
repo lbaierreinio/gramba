@@ -81,7 +81,7 @@ with open(log_file, "w") as f: # this clears the existing logs
     f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
     f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
 
-eval_every = 1 # Every n epochs, evaluate EM and F1
+eval_every = 10 # Every n epochs, evaluate EM and F1
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, fused=use_fused)
 num_training_steps = epochs * len(train_loader)  # Total number of steps
@@ -97,12 +97,13 @@ def forward_batch(batch):
     )
     y = torch.cat([answer_start_idx, answer_end_idx], dim=-1) # [batch_size, 2]
     mask = (x == tokenizer.pad_token_id)
+
     if ampere_gpu:
         # mixed precision training
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits, loss = model(x, targets=y, mask=mask, question_end_idx = batch["question_end_idx"].to(device))
+            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
     else:
-        logits, loss = model(x, targets=y, mask=mask, question_end_idx = batch["question_end_idx"].to(device))
+        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
 
     return logits, loss
 
