@@ -36,19 +36,23 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
     def forward(self, x, mask, is_sequential=False, question_end_idx=None):
         """
         Ensure sufficient padding added to adhere to window size.
+        TODO: Clean up & consider doing mask padding in the dataloader
         """
         padding_needed = self.window_size - (x.size(1) % self.window_size)
         longformer_mask = mask
-        if padding_needed > 0:
-            x = F.pad(x, (0, 0, 0, padding_needed), value=self.pad_token_id)
-            longformer_mask = F.pad(mask, (0, padding_needed), value=True)
-        
         longformer_mask = longformer_mask * -10000 # Local attention to all non-padded values
 
         if self.task == 'cls': # Global attention to CLS token
+            if padding_needed > 0:
+                x = F.pad(x, (0, 0, 0, padding_needed), value=self.pad_token_id)
+                longformer_mask = F.pad(mask, (0, padding_needed), value=True)
+        
             longformer_mask[:, -1] = 10000 
         elif self.task == 'qa': # Global attention to question tokens
-            longformer_mask[:, question_end_idx] = 10000
+            if padding_needed > 0: # apply padding at the beginning
+                x = F.pad(x, (0, 0, padding_needed, 0), value=self.pad_token_id)
+                longformer_mask = F.pad(mask, (padding_needed, 0), value=True)
+            longformer_mask[:, padding_needed, question_end_idx + padding_needed] = 10000
 
         is_index_masked = longformer_mask < 0
         is_index_global_attn = longformer_mask > 0
@@ -57,8 +61,13 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         # LongFormer with residual connection
         x = x + self.longformer(x, longformer_mask, None, is_index_masked, is_index_global_attn, is_global_attn, False)[0]
         # Remove the padding token
-        if padding_needed > 0:
-            x = x[:, :-padding_needed]
+        if self.task == 'cls':
+            if padding_needed > 0:
+                x = x[:, :-padding_needed]
+        elif self.task == 'qa':
+            if padding_needed > 0:
+                x = x[:, padding_needed:]
+
         x = self.ln(x)
 
         # MLP 1 with residual connection
