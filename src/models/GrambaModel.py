@@ -32,10 +32,10 @@ class GrambaModel(nn.Module):
                     self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id, task=config.task))
                 # TODO: Add different attention mechanisms here
 
-    def forward(self, x, mask=None, is_sequential=False, token_type_ids=None):
+    def forward(self, x, mask=None, is_sequential=False, question_end_idx=None):
         x = self.embedding(x)
 
         for layer in self.layers:
-            x = layer(x, mask, is_sequential=is_sequential, token_type_ids=token_type_ids)
+            x = layer(x, mask, is_sequential=is_sequential, question_end_idx=question_end_idx)
         
         return x

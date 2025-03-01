@@ -33,7 +33,7 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         self.window_size = window_size
         self.pad_token_id = pad_token_id
 
-    def forward(self, x, mask, is_sequential=False, token_type_ids=None):
+    def forward(self, x, mask, is_sequential=False, question_end_idx=None):
         """
         Ensure sufficient padding added to adhere to window size.
         """
@@ -48,9 +48,7 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         if self.task == 'cls': # Global attention to CLS token
             longformer_mask[:, -1] = 10000 
         elif self.task == 'qa': # Global attention to question tokens
-            # TODO
-            print(token_type_ids)
-            pass
+            longformer_mask[:, question_end_idx] = 10000
 
         is_index_masked = longformer_mask < 0
         is_index_global_attn = longformer_mask > 0

@@ -28,6 +28,7 @@ def preprocess_function(tokenizer, examples):
 
     start_positions = []
     end_positions = []
+    question_end_idx = []
 
     for i, offset in enumerate(offset_mapping):
         answer = answers[i]
@@ -58,9 +59,12 @@ def preprocess_function(tokenizer, examples):
         while offset[idx][1] > end_char:
             idx -= 1
         end_positions.append(idx)
+        question_end_idx.append(context_start-1)
+    
 
     inputs["answer_start_idx"] = start_positions
     inputs["answer_end_idx"] = end_positions
+    inputs["question_end_idx"] = question_end_idx
     inputs.pop("attention_mask") # remove
     return inputs
 
