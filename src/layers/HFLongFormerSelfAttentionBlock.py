@@ -5,7 +5,7 @@ from transformers import LongformerConfig
 from transformers.models.longformer.modeling_longformer import LongformerSelfAttention
 
 class HFLongFormerSelfAttentionBlock(nn.Module):
-    def __init__(self, hidden_dim, window_size, pad_token_id, task, expansion_factor=4, num_attention_heads=2):
+    def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=2):
         """
         NOTE: This implementation requires a later version of Transformers (e.g. 4.46.3)
         """
@@ -13,7 +13,6 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         assert window_size > 2, "Window size must be greater than 2"
         self.pad_token_id = pad_token_id
         self.window_size = window_size
-        self.task = task
 
         # Create an object for LongFormerSelfAttention's configuration
         config = LongformerConfig(

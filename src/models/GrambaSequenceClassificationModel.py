@@ -8,7 +8,6 @@ class GrambaSequenceClassificationModel(nn.Module):
         Config should be an instance of GrambaConfig.
         """
         super().__init__()
-        config.task = 'cls'
         self.gramba_model = GrambaModel(config)
         self.classifier = nn.Linear(config.embedding_dim, config.num_classes)
 
