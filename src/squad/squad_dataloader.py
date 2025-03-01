@@ -1,5 +1,5 @@
+import torch
 from functools import partial
-
 from torch.utils.data import DataLoader
 from datasets import load_dataset
 from transformers import DataCollatorWithPadding
@@ -59,8 +59,7 @@ def preprocess_function(tokenizer, examples):
         while offset[idx][1] > end_char:
             idx -= 1
         end_positions.append(idx)
-        question_end_idx.append(context_start-1)
-    
+        question_end_idx.append(context_start-1)    
 
     inputs["answer_start_idx"] = start_positions
     inputs["answer_end_idx"] = end_positions
@@ -96,6 +95,23 @@ def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
         # Collate everything else using DataCollatorWithPadding
         tokenized_batch = padding_collator(batch)
         tokenized_batch["id"] = ids  # Add ids back to the batch
+        # Create LongFormer attention mask
+
+        # Extract attention_mask and question_end_idx for the entire batch
+        attention_mask = tokenized_batch["attention_mask"]  # Shape: [batch_size, seq_len]
+        question_end_idx = torch.tensor([example["question_end_idx"] for example in batch])  # Shape: [batch_size]
+
+        local_attention_mask = (~attention_mask.bool()) * -10000 # Set all padding tokens to -10000
+
+        # Create global_attention_mask in a batch-wise manner
+        global_attention_mask = torch.zeros_like(attention_mask)  # Shape: [batch_size, seq_len]
+        
+        # Set values before question_end_idx to a high value
+        question_idx = torch.arange(attention_mask.size(1)).unsqueeze(0).expand(attention_mask.size(0), -1)
+        global_attention_mask = (question_idx < question_end_idx.unsqueeze(1)).int() * 10000 
+        
+        # Apply the attention mask transformation in a vectorized manner
+        tokenized_batch['longformer_mask'] = local_attention_mask + global_attention_mask
         return tokenized_batch
 
     train_dataloader = DataLoader(

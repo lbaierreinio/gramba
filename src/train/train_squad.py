@@ -68,6 +68,11 @@ squad_metric = load(squad_version)
 if use_compile:
     model = torch.compile(model)
 
+for batch in train_loader:
+    print(batch['input_ids'][0])
+    print(batch['longformer_mask'][0])
+    print(batch['question_end_idx'][0])
+
 unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{'T' if config.bidirectional else 'F'}"
 
 # Create the log directory we will write checkpoints to and log to
