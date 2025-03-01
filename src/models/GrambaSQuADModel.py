@@ -5,11 +5,12 @@ from models.GrambaModel import GrambaModel
 class GrambaSQuADModel(nn.Module):
     def __init__(self, config):
         super().__init__()
+        config.task = 'qa'
         self.gramba_model = GrambaModel(config)
         self.head = nn.Linear(config.embedding_dim, config.num_classes)
         
-    def forward(self, x, targets=None, mask=None):
-        x = self.gramba_model(x, mask)
+    def forward(self, x, targets=None, mask=None, token_type_ids=None):
+        x = self.gramba_model(x, mask, token_type_ids=token_type_ids)
         logits = self.head(x)
 
         loss = self.loss(logits, targets, mask) if targets is not None else None
