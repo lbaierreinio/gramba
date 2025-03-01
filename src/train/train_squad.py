@@ -30,7 +30,7 @@ max_lr = 6e-4 * 3
 min_lr = max_lr * 0.1
 warmup_steps = 5000
 epochs = 30
-B = 128 # batch size
+B = 192 # batch size
 print(f"batch size{B}")
 
 #########################################################
@@ -44,7 +44,7 @@ config = GrambaConfig(
     embedding_dim=50,
     expansion_factor=4,
     num_layers=2,
-    window_size=8,
+    window_size=16,
     ratio=4,
     bidirectional=False,
     pad_token_id=tokenizer.pad_token_id
@@ -214,7 +214,7 @@ for i in range(epochs):
     # eval
     model.eval()
     with torch.no_grad():
-        should_get_predictions = i > 0 and i % eval_every == 0
+        should_get_predictions = (i > 0 and i % eval_every == 0) or i == epochs - 1
         val_loss_accum = 0.0
 
         # As we're iterating through the batch, get predictions in the format {"id": ..., "prediction": ...}
