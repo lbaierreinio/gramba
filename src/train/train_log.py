@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from models.GrambaConfig import GrambaConfig
 import torch.optim.lr_scheduler as lr_scheduler
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
+from utils.mask_dataloader import classification_collate_fn
 
 is_twitter = 0
 is_save = False
@@ -24,8 +25,8 @@ split = 0.9
 train_size = int(split * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) 
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=classification_collate_fn) 
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=classification_collate_fn)
 
 
 config = GrambaConfig(

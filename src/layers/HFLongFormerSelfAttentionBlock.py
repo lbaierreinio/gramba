@@ -34,32 +34,24 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         self.window_size = window_size
         self.pad_token_id = pad_token_id
 
-    def forward(self, x, mask, is_sequential=False, question_end_idx=None):
+    def forward(self, x, mask, is_sequential=False):
         """
-        Ensure sufficient padding added to adhere to window size.
-        TODO: Clean up & consider doing mask padding in the dataloader
+        -10000: No attention
+        0: Local attention
+        +10000: Global attention
         """
+        # Ensure padding so that the input size is a multiple of the window size
         padding_needed = self.window_size - (x.size(1) % self.window_size)
-        longformer_mask = mask
         if padding_needed > 0: # Pad at the end
             x = F.pad(x, (0, 0, 0, padding_needed), value=self.pad_token_id)
-            longformer_mask = ~F.pad(longformer_mask, (0, padding_needed), value=True)
+            padded_mask = F.pad(mask, (0, padding_needed), value=-10000)
 
-        longformer_mask = longformer_mask * -10000 # Local attention to all non-padded values
-
-        if self.task == 'cls': # Global attention to CLS token
-            longformer_mask[:, -1] = 10000 
-        elif self.task == 'qa': # Global attention to question tokens
-            question_idx = torch.arange(longformer_mask.size(1)).unsqueeze(0).expand(longformer_mask.size(0), -1).to(longformer_mask.device)
-            tmp_mask = (question_idx < question_end_idx.unsqueeze(1)).int() * 20000 
-            longformer_mask = longformer_mask + tmp_mask
-
-        is_index_masked = longformer_mask < 0
-        is_index_global_attn = longformer_mask > 0
+        is_index_masked = padded_mask < 0
+        is_index_global_attn = padded_mask > 0
         is_global_attn = is_index_global_attn.flatten().any().item()
 
         # LongFormer with residual connection
-        x = x + self.longformer(x, longformer_mask, None, is_index_masked, is_index_global_attn, is_global_attn, False)[0]
+        x = x + self.longformer(x, padded_mask, None, is_index_masked, is_index_global_attn, is_global_attn, False)[0]
 
         if padding_needed > 0:
             x = x[:, :-padding_needed]

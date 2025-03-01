@@ -12,7 +12,7 @@ class GrambaBlock(nn.Module):
             nn.Linear(hidden_dim * expansion_factor, hidden_dim),
         )
 
-    def forward(self, x, mask=None, is_sequential=False, question_end_idx=None):
+    def forward(self, x, mask=None, is_sequential=False):
         # Gramba with residual connection
         x = x + self.gramba(x, mask, is_sequential=is_sequential)
         x = self.ln(x)
