@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import LongformerConfig
@@ -33,25 +34,27 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         self.pad_token_id = pad_token_id
 
     def forward(self, x, mask, is_sequential=False):
+        """
+        -10000: No attention
+        0: Local attention
+        +10000: Global attention
+        """
+        # Ensure padding so that the input size is a multiple of the window size
         padding_needed = self.window_size - (x.size(1) % self.window_size)
-        # Ensure that the sequence length is even
-        longformer_mask = mask
-        if padding_needed > 0:
+        if padding_needed > 0: # Pad at the end
             x = F.pad(x, (0, 0, 0, padding_needed), value=self.pad_token_id)
-            longformer_mask = F.pad(mask, (0, padding_needed), value=True)
-        
-        longformer_mask = longformer_mask * -10000 # Local attention to all non-padded values
-        longformer_mask[:, -1] = 10000 # Global attention to CLS token
+            padded_mask = F.pad(mask, (0, padding_needed), value=-10000)
 
-        is_index_masked = longformer_mask < 0
-        is_index_global_attn = longformer_mask > 0
+        is_index_masked = padded_mask < 0
+        is_index_global_attn = padded_mask > 0
         is_global_attn = is_index_global_attn.flatten().any().item()
 
         # LongFormer with residual connection
-        x = x + self.longformer(x, longformer_mask, None, is_index_masked, is_index_global_attn, is_global_attn, False)[0]
-        # Remove the padding token
+        x = x + self.longformer(x, padded_mask, None, is_index_masked, is_index_global_attn, is_global_attn, False)[0]
+
         if padding_needed > 0:
             x = x[:, :-padding_needed]
+
         x = self.ln(x)
 
         # MLP 1 with residual connection

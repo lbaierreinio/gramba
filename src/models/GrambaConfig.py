@@ -17,7 +17,7 @@ class GrambaConfig:
             pad_token_id: int = 0,
             vocab_size: int = 30522,
             embedding_weights: torch.Tensor = None,
-            attention_mechanism: str = 'longformer'
+            attention_mechanism: str = 'longformer',
     ):
         """
         Initialize the configuration class for Gramba.
