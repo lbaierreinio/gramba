@@ -5,7 +5,6 @@ from models.GrambaModel import GrambaModel
 class GrambaSQuADModel(nn.Module):
     def __init__(self, config):
         super().__init__()
-        config.task = 'qa'
         self.gramba_model = GrambaModel(config)
         self.head = nn.Linear(config.embedding_dim, config.num_classes)
         

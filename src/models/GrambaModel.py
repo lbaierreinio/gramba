@@ -29,7 +29,7 @@ class GrambaModel(nn.Module):
                 for _ in range(config.ratio):
                     self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
                 if config.attention_mechanism == 'longformer':
-                    self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id, task=config.task))
+                    self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id))
                 # TODO: Add different attention mechanisms here
 
     def forward(self, x, attention_mask=None, longformer_mask=None, is_sequential=False):
