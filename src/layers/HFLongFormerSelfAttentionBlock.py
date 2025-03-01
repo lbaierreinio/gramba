@@ -4,7 +4,7 @@ from transformers import LongformerConfig
 from transformers.models.longformer.modeling_longformer import LongformerSelfAttention
 
 class HFLongFormerSelfAttentionBlock(nn.Module):
-    def __init__(self, hidden_dim, window_size, pad_token_id, expansion_factor=4, num_attention_heads=2):
+    def __init__(self, hidden_dim, window_size, pad_token_id, task, expansion_factor=4, num_attention_heads=2):
         """
         NOTE: This implementation requires a later version of Transformers (e.g. 4.46.3)
         """
@@ -12,6 +12,7 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         assert window_size > 2, "Window size must be greater than 2"
         self.pad_token_id = pad_token_id
         self.window_size = window_size
+        self.task = task
 
         # Create an object for LongFormerSelfAttention's configuration
         config = LongformerConfig(
@@ -32,16 +33,24 @@ class HFLongFormerSelfAttentionBlock(nn.Module):
         self.window_size = window_size
         self.pad_token_id = pad_token_id
 
-    def forward(self, x, mask, is_sequential=False):
+    def forward(self, x, mask, is_sequential=False, token_type_ids=None):
+        """
+        Ensure sufficient padding added to adhere to window size.
+        """
         padding_needed = self.window_size - (x.size(1) % self.window_size)
-        # Ensure that the sequence length is even
         longformer_mask = mask
         if padding_needed > 0:
             x = F.pad(x, (0, 0, 0, padding_needed), value=self.pad_token_id)
             longformer_mask = F.pad(mask, (0, padding_needed), value=True)
         
         longformer_mask = longformer_mask * -10000 # Local attention to all non-padded values
-        longformer_mask[:, -1] = 10000 # Global attention to CLS token
+
+        if self.task == 'cls': # Global attention to CLS token
+            longformer_mask[:, -1] = 10000 
+        elif self.task == 'qa': # Global attention to question tokens
+            # TODO
+            print(token_type_ids)
+            pass
 
         is_index_masked = longformer_mask < 0
         is_index_global_attn = longformer_mask > 0
