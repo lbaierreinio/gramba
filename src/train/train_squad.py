@@ -100,9 +100,9 @@ def forward_batch(batch):
     if ampere_gpu:
         # mixed precision training
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits, loss = model(x, targets=y, mask=mask, token_type_ids = batch["token_type_ids"].to(device))
+            logits, loss = model(x, targets=y, mask=mask, question_end_idx = batch["question_end_idx"].to(device))
     else:
-        logits, loss = model(x, targets=y, mask=mask, token_type_ids = batch["token_type_ids"].to(device))
+        logits, loss = model(x, targets=y, mask=mask, question_end_idx = batch["question_end_idx"].to(device))
 
     return logits, loss
 

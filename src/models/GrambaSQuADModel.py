@@ -9,8 +9,8 @@ class GrambaSQuADModel(nn.Module):
         self.gramba_model = GrambaModel(config)
         self.head = nn.Linear(config.embedding_dim, config.num_classes)
         
-    def forward(self, x, targets=None, mask=None, token_type_ids=None):
-        x = self.gramba_model(x, mask, token_type_ids=token_type_ids)
+    def forward(self, x, targets=None, mask=None, question_end_idx=None):
+        x = self.gramba_model(x, mask, question_end_idx=question_end_idx)
         logits = self.head(x)
 
         loss = self.loss(logits, targets, mask) if targets is not None else None
