@@ -8,7 +8,7 @@ import torch.optim.lr_scheduler as lr_scheduler
 from models.GrambaSequenceClassificationModel import GrambaSequenceClassificationModel
 from utils.mask_dataloader import classification_collate_fn
 
-is_twitter = 0
+is_twitter = True
 is_save = False
 is_load = False
 is_log = True
@@ -72,7 +72,7 @@ for i in range(num_training_steps):
         mask = ~batch['attention_mask'].bool().to(device)
 
         #forward pass
-        logits = model(inputs, mask)
+        logits = model(inputs, mask, batch['longformer_mask'].to(device))
         logits = logits.squeeze(-1)
         loss = loss_fn(logits, labels)
         loss.backward()
@@ -96,7 +96,7 @@ for i in range(num_training_steps):
             inputs = batch['input_ids'].to(device)
             labels = batch['labels'].float().to(device)
             mask = ~batch['attention_mask'].bool().to(device)
-            logits = model(inputs, mask)
+            logits = model(inputs, mask, batch['longformer_mask'].to(device))
             logits = logits.squeeze(-1)
             loss = loss_fn(logits, labels)
             val_loss += loss.item()
