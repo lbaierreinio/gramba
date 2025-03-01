@@ -10,9 +10,10 @@ class TestGrambaModel:
 
         x = torch.randint(0, config.vocab_size, (32, 512))
 
-        mask = torch.ones_like(x).bool()
+        attention_mask = torch.ones_like(x).bool()
+        longformer_mask = torch.zeros_like(x).bool()
 
-        x_out = gramba_model(x, mask)
+        x_out = gramba_model(x, attention_mask, longformer_mask)
 
         # assert none are nan
         assert not torch.any(torch.isnan(x_out))
