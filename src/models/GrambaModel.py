@@ -30,7 +30,7 @@ class GrambaModel(nn.Module):
             for _ in range(config.num_layers):
                 for _ in range(config.ratio):
                     g = Gramba(config.embedding_dim, config.expansion_factor, config.bidirectional)
-                self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
+                    self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
                 if config.attention_mechanism == 'longformer':
                     l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
