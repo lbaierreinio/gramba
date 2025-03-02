@@ -23,6 +23,7 @@ class Gramba(nn.Module):
 
     def forward(self, x, mask=None, is_sequential=False):
         assert not (is_sequential and mask is not None), "Cannot use mask and is_sequential at the same time"
+        assert not (is_sequential and self.minGRU.bidirectional), "Cannot use bidirectional GRU in sequential mode"
         x_in = self.projection_one(x)
         x_skip = self.projection_two(x)
         if is_sequential:
