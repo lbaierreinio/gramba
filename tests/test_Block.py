@@ -5,7 +5,6 @@ from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
 from models.GrambaConfig import GrambaConfig
 
 
-
 class TestBlock:
     def test_block_with_gramba(self):
         config = GrambaConfig()
