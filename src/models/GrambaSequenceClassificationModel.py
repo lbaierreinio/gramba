@@ -9,10 +9,11 @@ class GrambaSequenceClassificationModel(nn.Module):
         """
         super().__init__()
         self.gramba_model = GrambaModel(config)
+        self.ln = nn.LayerNorm(config.embedding_dim)
         self.classifier = nn.Linear(config.embedding_dim, config.num_classes)
 
     def forward(self, x, attention_mask=None, longformer_mask=None, is_sequential=False):
         x = self.gramba_model(x, attention_mask, longformer_mask, is_sequential=is_sequential) # B_S, S_L, H_D
         x = x[:, -1, :]  # Should be the CLS token
-        x = self.classifier(x)
+        x = self.classifier(self.ln(x))
         return x

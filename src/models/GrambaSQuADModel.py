@@ -6,11 +6,12 @@ class GrambaSQuADModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.gramba_model = GrambaModel(config)
+        self.ln = nn.LayerNorm(config.embedding_dim)
         self.head = nn.Linear(config.embedding_dim, config.num_classes)
         
     def forward(self, x, targets=None, attention_mask=None, longformer_mask=None):
         x = self.gramba_model(x, attention_mask, longformer_mask)
-        logits = self.head(x)
+        logits = self.head(self.ln(x))
 
         loss = self.loss(logits, targets, attention_mask) if targets is not None else None
         return logits, loss
