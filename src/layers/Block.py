@@ -16,7 +16,7 @@ class Block(nn.Module):
 
     def forward(self, x, mask=None, is_sequential=False):
         # Residual connection and LayerNorm
-        x = self.ln1(x + self.a(x, mask, is_sequential=is_sequential))
+        x = x + self.a(self.ln1(x), mask, is_sequential=is_sequential)
 
         # MLP 1 with residual connection
-        return self.ln2(x + self.mlp(x))
+        return x + self.mlp(self.ln2(x))
