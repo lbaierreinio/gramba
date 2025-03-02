@@ -2,15 +2,14 @@ import os
 import time
 import torch
 import numpy as np
+from tqdm import tqdm
 from evaluate import load
 from transformers import AutoTokenizer
-from transformers import get_cosine_schedule_with_warmup
-from tqdm import tqdm
-
-from models.GrambaSQuADModel import GrambaSQuADModel
 from models.GrambaConfig import GrambaConfig
-from squad.squad_dataloader import get_squad_dataloaders, get_squad_validation_references
 import torch.optim.lr_scheduler as lr_scheduler
+from models.GrambaSQuADModel import GrambaSQuADModel
+from squad.squad_dataloader import get_squad_dataloaders, get_squad_validation_references
+
 # fix seed
 torch.manual_seed(42)
 if torch.cuda.is_available():
@@ -37,7 +36,7 @@ print(f"batch size{B}")
 #########################################################
 # Create model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-embedding_path = "src/glove/embedding_matrix_100.npy"
+embedding_path = "src/glove/embedding_matrix_50.npy"
 lr=3e-4
 schedule="linear"
 start_factor=1.0
@@ -47,8 +46,8 @@ config = GrambaConfig(
     num_classes=2,
     vocab_size=tokenizer.vocab_size,
     embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
-    embedding_dim=100,
-    expansion_factor=2,
+    embedding_dim=50,
+    expansion_factor=4,
     num_layers=2,
     window_size=32,
     ratio=2,
