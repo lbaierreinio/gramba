@@ -10,7 +10,11 @@ from tqdm import tqdm
 from models.GrambaSQuADModel import GrambaSQuADModel
 from models.GrambaConfig import GrambaConfig
 from squad.squad_dataloader import get_squad_dataloaders, get_squad_validation_references
-
+import torch.optim.lr_scheduler as lr_scheduler
+# fix seed
+torch.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(42)
 # Process configurations
 use_fused = torch.cuda.is_available()
 use_compile = False
@@ -29,24 +33,25 @@ print(f"Using device: {device}")
 max_lr = 6e-4 * 3
 min_lr = max_lr * 0.1
 warmup_steps = 5000
-epochs = 30
-B = 192 # batch size
+epochs = 20
+B = 48 # batch size
 print(f"batch size{B}")
 
 #########################################################
 # Create model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+embedding_path = "src/glove/embedding_matrix_50.npy"
 
 config = GrambaConfig(
     num_classes=2,
     vocab_size=tokenizer.vocab_size,
-    embedding_weights=torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32),
+    embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
     embedding_dim=50,
     expansion_factor=4,
-    num_layers=2,
+    num_layers=4,
     window_size=16,
     ratio=4,
-    bidirectional=False,
+    bidirectional=True,
     pad_token_id=tokenizer.pad_token_id
 )
 
@@ -68,7 +73,7 @@ squad_metric = load(squad_version)
 if use_compile:
     model = torch.compile(model)
 
-unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{'T' if config.bidirectional else 'F'}"
+unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}"
 
 # Create the log directory we will write checkpoints to and log to
 log_dir = "log"
@@ -80,12 +85,13 @@ with open(log_file, "w") as f: # this clears the existing logs
     f.write(f"Model configurations:\n")
     f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
     f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
+    f.write(f"embedding_path={embedding_path}\n")
 
-eval_every = 10 # Every n epochs, evaluate EM and F1
+eval_every = 7 # Every n epochs, evaluate EM and F1
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, fused=use_fused)
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, fused=use_fused)
 num_training_steps = epochs * len(train_loader)  # Total number of steps
-scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=num_training_steps)
+scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=num_training_steps)
 
 
 def forward_batch(batch):
