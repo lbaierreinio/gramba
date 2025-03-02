@@ -30,27 +30,28 @@ elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
 print(f"Using device: {device}")
 
 # Optimizer configurations
-max_lr = 6e-4 * 3
-min_lr = max_lr * 0.1
-warmup_steps = 5000
-epochs = 20
-B = 48 # batch size
+epochs = 15
+B = 192 # batch size
 print(f"batch size{B}")
 
 #########################################################
 # Create model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-embedding_path = "src/glove/embedding_matrix_50.npy"
+embedding_path = "src/glove/embedding_matrix_100.npy"
+lr=3e-4
+schedule="linear"
+start_factor=1.0
+end_factor=0.3
 
 config = GrambaConfig(
     num_classes=2,
     vocab_size=tokenizer.vocab_size,
     embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
-    embedding_dim=50,
-    expansion_factor=4,
-    num_layers=4,
-    window_size=16,
-    ratio=4,
+    embedding_dim=100,
+    expansion_factor=2,
+    num_layers=2,
+    window_size=32,
+    ratio=2,
     bidirectional=True,
     pad_token_id=tokenizer.pad_token_id
 )
@@ -73,6 +74,8 @@ squad_metric = load(squad_version)
 if use_compile:
     model = torch.compile(model)
 
+num_training_steps = epochs * len(train_loader)  # Total number of steps
+
 unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}"
 
 # Create the log directory we will write checkpoints to and log to
@@ -81,17 +84,17 @@ os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, f"log-{unique_identifier}.txt")
 with open(log_file, "w") as f: # this clears the existing logs
     f.write("Training hyperparamaters:\n")
-    f.write(f"    {max_lr=}, {min_lr=}, {warmup_steps=}, {epochs=}, batch_size={B}\n")
+    f.write(f", epochs={epochs}, batch_size={B}, lr={lr}, schedule={schedule}, start_factor={start_factor}, end_factor={end_factor}\n")
     f.write(f"Model configurations:\n")
     f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
     f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
     f.write(f"embedding_path={embedding_path}\n")
 
-eval_every = 7 # Every n epochs, evaluate EM and F1
+eval_every = 5 # Every n epochs, evaluate EM and F1
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, fused=use_fused)
 num_training_steps = epochs * len(train_loader)  # Total number of steps
-scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=num_training_steps)
+scheduler = lr_scheduler.LinearLR(optimizer, start_factor=start_factor, end_factor=end_factor, total_iters=num_training_steps)
 
 
 def forward_batch(batch):

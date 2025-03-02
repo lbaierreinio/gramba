@@ -13,6 +13,7 @@ class GrambaConfig:
             num_classes: int = 1,
             ratio: int = 4,
             window_size: int = 8,
+            dropout: float = 0.3,
             bidirectional: bool = False,
             pad_token_id: int = 0,
             vocab_size: int = 30522,
@@ -28,6 +29,7 @@ class GrambaConfig:
         self.num_classes = num_classes
         self.ratio = ratio
         self.window_size = window_size
+        self.dropout = dropout
         self.bidirectional = bidirectional
         self.pad_token_id = pad_token_id
         self.vocab_size = vocab_size

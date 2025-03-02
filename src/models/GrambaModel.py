@@ -1,6 +1,7 @@
 import torch.nn as nn
-from layers.GrambaBlock import GrambaBlock
-from layers.HFLongFormerSelfAttentionBlock import HFLongFormerSelfAttentionBlock
+from layers.Block import Block
+from layers.Gramba import Gramba
+from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
 
 class GrambaModel(nn.Module):
     def __init__(self, config):
@@ -23,22 +24,25 @@ class GrambaModel(nn.Module):
 
         if config.ratio == 0:
             for _ in range(config.num_layers):
-                self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
+                g = Gramba(config.embedding_dim, config.expansion_factor, config.bidirectional)
+                self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
         else:
             for _ in range(config.num_layers):
                 for _ in range(config.ratio):
-                    self.layers.append(GrambaBlock(config.embedding_dim, config.expansion_factor, config.bidirectional))
+                    g = Gramba(config.embedding_dim, config.expansion_factor, config.bidirectional)
+                self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
                 if config.attention_mechanism == 'longformer':
-                    self.layers.append(HFLongFormerSelfAttentionBlock(config.embedding_dim, config.window_size, config.pad_token_id))
+                    l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
+                    self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 # TODO: Add different attention mechanisms here
 
     def forward(self, x, attention_mask=None, longformer_mask=None, is_sequential=False):
         x = self.embedding(x)
 
         for layer in self.layers:
-            if isinstance(layer, HFLongFormerSelfAttentionBlock):
+            if isinstance(layer.a, Gramba):
                 x = layer(x, longformer_mask, is_sequential=is_sequential)
-            elif isinstance(layer, GrambaBlock):
+            elif isinstance(layer.a, HFLongFormerSelfAttention):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
         
         return x
