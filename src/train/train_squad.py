@@ -30,7 +30,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 192 # batch size
+B = 96 # batch size
 print(f"batch size{B}")
 
 #########################################################
@@ -48,7 +48,7 @@ config = GrambaConfig(
     embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
     embedding_dim=50,
     expansion_factor=4,
-    num_layers=2,
+    num_layers=4,
     window_size=32,
     ratio=2,
     bidirectional=True,
