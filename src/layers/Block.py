@@ -9,7 +9,7 @@ class Block(nn.Module):
         self.ln2 = nn.LayerNorm(hidden_dim)
         self.mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim * expansion_factor),
-            nn.GELU(),
+            nn.ReLU(),
             nn.Dropout(p=dropout),
             nn.Linear(hidden_dim * expansion_factor, hidden_dim),
         )
