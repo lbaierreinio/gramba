@@ -118,7 +118,7 @@ def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
         train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn
     )
     val_dataloader = DataLoader(
-        val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn
+        val_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn
     )
 
     return train_dataloader, val_dataloader
