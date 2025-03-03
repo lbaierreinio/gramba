@@ -14,6 +14,7 @@ class GrambaModel(nn.Module):
         GRU layers. Note that sequential mode does not support bidirectionality.
         """
         super().__init__()
+        self.config = config
         attention_mechanisms = ['longformer']
         assert config.attention_mechanism in ['longformer'], f"Attention mechanism must be one of {attention_mechanisms}"
         if config.embedding_weights is None:
