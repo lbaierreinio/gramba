@@ -56,7 +56,7 @@ else:
         expansion_factor=1,
         num_layers=4,
         window_size=32,
-        ratio=6,
+        ratio=8,
         bidirectional=True,
         pad_token_id=tokenizer.pad_token_id
     )
