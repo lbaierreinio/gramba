@@ -30,7 +30,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 96 # batch size
+B = 192 # batch size
 print(f"batch size{B}")
 
 #########################################################
@@ -47,10 +47,10 @@ config = GrambaConfig(
     vocab_size=tokenizer.vocab_size,
     embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
     embedding_dim=50,
-    expansion_factor=4,
+    expansion_factor=1,
     num_layers=4,
     window_size=32,
-    ratio=2,
+    ratio=6,
     bidirectional=True,
     pad_token_id=tokenizer.pad_token_id
 )
