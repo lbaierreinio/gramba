@@ -61,7 +61,6 @@ model = GrambaSQuADModel(config)
 model_size = sum(p.numel() for p in model.parameters())
 print(f"Model size: {model_size} parameters")
 
-
 model.to(device)
 
 squad_version = "squad" # "squad" for v1, "squad_v2" for v2
