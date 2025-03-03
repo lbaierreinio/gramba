@@ -30,7 +30,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 192 # batch size
+B = 160 # batch size
 print(f"batch size{B}")
 
 #########################################################
@@ -41,21 +41,26 @@ lr=3e-4
 schedule="linear"
 start_factor=1.0
 end_factor=0.3
+model_path = None
 
-config = GrambaConfig(
-    num_classes=2,
-    vocab_size=tokenizer.vocab_size,
-    embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
-    embedding_dim=50,
-    expansion_factor=1,
-    num_layers=4,
-    window_size=32,
-    ratio=6,
-    bidirectional=True,
-    pad_token_id=tokenizer.pad_token_id
-)
 
-model = GrambaSQuADModel(config)
+if model_path is not None:
+    model = torch.load(model_path)
+    config = model.config
+else:
+    config = GrambaConfig(
+        num_classes=2,
+        vocab_size=tokenizer.vocab_size,
+        embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
+        embedding_dim=50,
+        expansion_factor=1,
+        num_layers=4,
+        window_size=32,
+        ratio=6,
+        bidirectional=True,
+        pad_token_id=tokenizer.pad_token_id
+    )
+    model = GrambaSQuADModel(config)
 
 
 model_size = sum(p.numel() for p in model.parameters())
@@ -76,6 +81,9 @@ num_training_steps = epochs * len(train_loader)  # Total number of steps
 
 unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}"
 
+if model_path is not None:
+    unique_identifier += f"-from_checkpoint"
+
 # Create the log directory we will write checkpoints to and log to
 log_dir = "log"
 os.makedirs(log_dir, exist_ok=True)
@@ -86,7 +94,7 @@ with open(log_file, "w") as f: # this clears the existing logs
     f.write(f"Model configurations:\n")
     f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
     f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
-    f.write(f"embedding_path={embedding_path}\n")
+    f.write(f"embedding_path={embedding_path} continued_from_checkpoint={model_path is not None}\n")
 
 eval_every = 5 # Every n epochs, evaluate EM and F1
 
