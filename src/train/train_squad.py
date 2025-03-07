@@ -31,7 +31,7 @@ print(f"Using device: {device}")
 # Optimizer configurations
 epochs = 15
 B = 160 # batch size
-print(f"batch size{B}")
+print(f"batch size {B}")
 
 #########################################################
 # Create model
