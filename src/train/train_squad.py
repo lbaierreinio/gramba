@@ -58,7 +58,8 @@ else:
         window_size=32,
         ratio=8,
         bidirectional=True,
-        pad_token_id=tokenizer.pad_token_id
+        pad_token_id=tokenizer.pad_token_id,
+        attention_mechanism='linformer'
     )
     model = GrambaSQuADModel(config)
 
@@ -79,7 +80,7 @@ if use_compile:
 
 num_training_steps = epochs * len(train_loader)  # Total number of steps
 
-unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}"
+unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}-{'L' if config.attention_mechanism == 'longformer' else 'l'}"
 
 if model_path is not None:
     unique_identifier += f"-from_checkpoint"

@@ -2,6 +2,8 @@ import torch.nn as nn
 from layers.Block import Block
 from layers.Gramba import Gramba
 from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
+from linformer import LinformerSelfAttention
+
 
 class GrambaModel(nn.Module):
     def __init__(self, config):
@@ -15,8 +17,8 @@ class GrambaModel(nn.Module):
         """
         super().__init__()
         self.config = config
-        attention_mechanisms = ['longformer']
-        assert config.attention_mechanism in ['longformer'], f"Attention mechanism must be one of {attention_mechanisms}"
+        attention_mechanisms = ['longformer','linformer']
+        assert config.attention_mechanism in attention_mechanisms, f"Attention mechanism must be one of {attention_mechanisms}"
         if config.embedding_weights is None:
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
@@ -34,6 +36,9 @@ class GrambaModel(nn.Module):
                     self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
                 if config.attention_mechanism == 'longformer':
                     l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
+                    self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
+                elif config.attention_mechanism == 'linformer':
+                    l = LinformerSelfAttention(dim = config.embedding_dim, seq_len = config.window_size, dropout=config.dropout, heads = 5)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 # TODO: Add different attention mechanisms here
 
