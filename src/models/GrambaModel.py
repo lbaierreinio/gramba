@@ -38,18 +38,19 @@ class GrambaModel(nn.Module):
                     l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 elif config.attention_mechanism == 'linformer':
-                    l = LinformerSelfAttention(dim = config.embedding_dim, seq_len = config.window_size, dropout=config.dropout, heads = 5)
+                    l = LinformerSelfAttention(dim = config.embedding_dim, seq_len = 870, dropout=config.dropout, heads = 5)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 # TODO: Add different attention mechanisms here
 
     def forward(self, x, attention_mask=None, longformer_mask=None, is_sequential=False):
         x = self.embedding(x)
-
         for layer in self.layers:
             if isinstance(layer.a, Gramba):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
             elif isinstance(layer.a, HFLongFormerSelfAttention):
                 x = layer(x, longformer_mask, is_sequential=is_sequential)
+            elif isinstance(layer.a, LinformerSelfAttention):
+                x = layer(x)
             # TODO: Add different attention mechanisms here
         
         return x
