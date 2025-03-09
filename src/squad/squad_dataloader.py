@@ -112,6 +112,9 @@ def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
         
         # Apply the attention mask transformation in a vectorized manner
         tokenized_batch['longformer_mask'] = local_attention_mask + global_attention_mask
+
+        #create linformer mask (mask the padding tokens)
+        tokenized_batch['linformer_mask'] = ~attention_mask.bool()
         return tokenized_batch
 
     train_dataloader = DataLoader(

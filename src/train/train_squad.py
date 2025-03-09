@@ -30,7 +30,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 160 # batch size
+B = 100 # batch size
 print(f"batch size {B}")
 
 #########################################################
@@ -117,9 +117,9 @@ def forward_batch(batch):
     if ampere_gpu:
         # mixed precision training
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
+            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
     else:
-        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
+        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
 
     return logits, loss
 
