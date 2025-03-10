@@ -2,6 +2,8 @@ import torch.nn as nn
 from layers.Block import Block
 from layers.Gramba import Gramba
 from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
+from layers.LinFormerSelfAttentionPadded import LinFormerSelfAttentionPadded
+
 
 class GrambaModel(nn.Module):
     def __init__(self, config):
@@ -15,8 +17,8 @@ class GrambaModel(nn.Module):
         """
         super().__init__()
         self.config = config
-        attention_mechanisms = ['longformer']
-        assert config.attention_mechanism in ['longformer'], f"Attention mechanism must be one of {attention_mechanisms}"
+        attention_mechanisms = ['longformer','linformer']
+        assert config.attention_mechanism in attention_mechanisms, f"Attention mechanism must be one of {attention_mechanisms}"
         if config.embedding_weights is None:
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
@@ -35,16 +37,18 @@ class GrambaModel(nn.Module):
                 if config.attention_mechanism == 'longformer':
                     l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
+                elif config.attention_mechanism == 'linformer':
+                    l = LinFormerSelfAttentionPadded(config.embedding_dim, config.pad_token_id, config.dropout)
+                    self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 # TODO: Add different attention mechanisms here
 
-    def forward(self, x, attention_mask=None, longformer_mask=None, is_sequential=False):
+    def forward(self, x, attention_mask=None, longformer_mask=None, linformer_mask=None, is_sequential=False):
         x = self.embedding(x)
-
         for layer in self.layers:
             if isinstance(layer.a, Gramba):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
             elif isinstance(layer.a, HFLongFormerSelfAttention):
                 x = layer(x, longformer_mask, is_sequential=is_sequential)
-            # TODO: Add different attention mechanisms here
-        
+            elif isinstance(layer.a, LinFormerSelfAttentionPadded):
+                x = layer(x,linformer_mask)        
         return x
