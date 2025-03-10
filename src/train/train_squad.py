@@ -30,8 +30,8 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 160 # batch size
-print(f"batch size{B}")
+B = 100 # batch size
+print(f"batch size {B}")
 
 #########################################################
 # Create model
@@ -58,7 +58,8 @@ else:
         window_size=32,
         ratio=8,
         bidirectional=True,
-        pad_token_id=tokenizer.pad_token_id
+        pad_token_id=tokenizer.pad_token_id,
+        attention_mechanism='linformer'
     )
     model = GrambaSQuADModel(config)
 
@@ -79,7 +80,7 @@ if use_compile:
 
 num_training_steps = epochs * len(train_loader)  # Total number of steps
 
-unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}"
+unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}-{config.attention_mechanism}"
 
 if model_path is not None:
     unique_identifier += f"-from_checkpoint"
@@ -116,9 +117,9 @@ def forward_batch(batch):
     if ampere_gpu:
         # mixed precision training
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
+            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
     else:
-        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device))
+        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
 
     return logits, loss
 

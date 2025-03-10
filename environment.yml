@@ -91,8 +91,7 @@ dependencies:
       - joblib==1.4.2
       - kiwisolver==1.4.7
       - libclang==18.1.1
-      - linformer-pytorch==0.19.3
-      - longformer==0.1
+      - linformer==0.2.3
       - markdown==3.7
       - markupsafe==2.1.5
       - matplotlib==3.7.5
