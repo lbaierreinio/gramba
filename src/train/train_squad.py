@@ -27,7 +27,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 100 # batch size
+B = 128 # batch size
 print(f"batch size {B}")
 
 #########################################################
