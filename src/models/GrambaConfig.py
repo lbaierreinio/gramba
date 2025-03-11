@@ -3,7 +3,19 @@ import torch
 
 class GrambaConfig:
     """
-    Configuration class for Gramba.
+    Configuration class for Gramba. Descriptions:
+    - embedding_dim: The dimension of the embeddings.
+    - expansion_factor: The expansion factor of the minGRU layers and MLPs.
+    - num_layers: The number of layers in the model.
+    - num_classes: The number of classes in the classification task.
+    - ratio: The ratio of minGRU to attention layers in the model (e.g. 2 means 2 minGRU layers for every 1 attention layer).
+    - window_size: The window size for the attention mechanism.
+    - dropout: The dropout rate.
+    - bidirectional: Whether the minGRU layers are bidirectional.
+    - pad_token_id: The token ID for padding.
+    - vocab_size: The size of the vocabulary.
+    - embedding_weights: The weights for the embeddings (if not provided the embedding weights are initialized from scratch.).
+
     """
     def __init__(
             self,
