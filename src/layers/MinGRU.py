@@ -79,6 +79,7 @@ class MinGRU(nn.Module):
             z = torch.sigmoid(k)
             tilde_h = self.g(tilde_h)
             h = ((1 - z) * h_prev) + (z * tilde_h)
+            del z, tilde_h, k
         else:  # Parallel Mode
             # NOTE: the implementation provided in the paper allows providing an explicit
             #       starting state h_0; we fix h_0 (implicitly) to be zero initialized
