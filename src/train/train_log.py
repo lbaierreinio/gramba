@@ -19,7 +19,7 @@ if is_twitter:
     batch_size = 512
     dataset = torch.load('src/twitter/twitter.pt')
 else:
-    batch_size = 64
+    batch_size = 128
     dataset = torch.load('src/imdb/imdb.pt')
 
 split = 0.9
@@ -33,12 +33,13 @@ val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, c
 config = GrambaConfig(
     num_classes=1,
     vocab_size=BertTokenizer.from_pretrained('bert-base-uncased').vocab_size,
-    embedding_weights=torch.tensor(np.load('src/glove/embedding_matrix.npy'), dtype=torch.float32),
+    embedding_weights=torch.tensor(np.load('src/glove/embedding_matrix_50.npy'), dtype=torch.float32),
     embedding_dim=50,
     expansion_factor=1,
     num_layers=1,
     window_size=8,
-    ratio=4,
+    ratio=2,
+    attention_mechanism='longformer',
     bidirectional=False,
     pad_token_id=0
 )
@@ -72,6 +73,7 @@ for i in range(num_training_steps):
             labels = batch['labels'].float().to(device)
             #add labels at the end of inputs
             mask = ~batch['attention_mask'].bool().to(device)
+            
 
             #forward pass
             logits = model(inputs, mask, batch['longformer_mask'].to(device))

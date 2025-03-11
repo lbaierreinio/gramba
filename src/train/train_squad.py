@@ -11,9 +11,6 @@ from models.GrambaSQuADModel import GrambaSQuADModel
 from squad.squad_dataloader import get_squad_dataloaders, get_squad_validation_references
 
 # fix seed
-torch.manual_seed(42)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(42)
 # Process configurations
 use_fused = torch.cuda.is_available()
 use_compile = False
@@ -30,7 +27,7 @@ print(f"Using device: {device}")
 
 # Optimizer configurations
 epochs = 15
-B = 100 # batch size
+B = 128 # batch size
 print(f"batch size {B}")
 
 #########################################################
@@ -53,10 +50,10 @@ else:
         vocab_size=tokenizer.vocab_size,
         embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
         embedding_dim=50,
-        expansion_factor=1,
-        num_layers=4,
-        window_size=32,
-        ratio=8,
+        expansion_factor=2,
+        num_layers=2,
+        window_size=24,
+        ratio=3,
         bidirectional=True,
         pad_token_id=tokenizer.pad_token_id,
         attention_mechanism='linformer'
