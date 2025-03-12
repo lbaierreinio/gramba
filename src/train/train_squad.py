@@ -26,8 +26,8 @@ elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
 print(f"Using device: {device}")
 
 # Optimizer configurations
-epochs = 20
-B = 160 # batch size
+epochs = 15
+B = 128 # batch size
 print(f"batch size {B}")
 
 #########################################################
@@ -50,13 +50,13 @@ else:
         vocab_size=tokenizer.vocab_size,
         embedding_weights=torch.tensor(np.load(embedding_path), dtype=torch.float32),
         embedding_dim=50,
-        expansion_factor=1,
+        expansion_factor=2,
         num_layers=2,
-        window_size=16,
-        ratio=2,
-        bidirectional=False,
+        window_size=24,
+        ratio=3,
+        bidirectional=True,
         pad_token_id=tokenizer.pad_token_id,
-        attention_mechanism='longformer'
+        attention_mechanism='linformer'
     )
     model = GrambaSQuADModel(config)
 
