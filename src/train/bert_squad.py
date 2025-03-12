@@ -4,8 +4,9 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from evaluate import load
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer,BertConfig
 import torch.optim.lr_scheduler as lr_scheduler
+from models.BertSQuADModel import BertSQuADModel
 from squad.squad_dataloader import get_squad_dataloaders, get_squad_validation_references
 
 # fix seed
@@ -24,13 +25,15 @@ elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
 print(f"Using device: {device}")
 
 # Optimizer configurations
-epochs = 15
+epochs = 20
 B = 128 # batch size
 print(f"batch size {B}")
 
 #########################################################
 # Create model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+#make the tokenizer truncate the input to 512 tokens
+
 embedding_path = "src/glove/embedding_matrix_50.npy"
 lr=3e-4
 schedule="linear"
@@ -39,8 +42,8 @@ end_factor=0.3
 model_path = None
 
 
-#import raw bert model
-model = AutoModel.from_pretrained("bert-base-uncased")
+config = BertConfig.from_pretrained('bert-base-uncased', num_hidden_layers=1, num_attention_heads=2, return_dict=True)
+model = BertSQuADModel(config)
 
 model_size = sum(p.numel() for p in model.parameters())
 print(f"Model size: {model_size} parameters")
@@ -50,30 +53,24 @@ model.to(device)
 squad_version = "squad" # "squad" for v1, "squad_v2" for v2
 if squad_version not in ["squad", "squad_v2"]:
     raise Exception("Invalid SQuAD version provided")
-train_loader, val_loader = get_squad_dataloaders(tokenizer, batch_size=B, version=squad_version)
-references = get_squad_validation_references(version=squad_version)
+train_loader, val_loader, id_removed = get_squad_dataloaders(tokenizer, batch_size=B, version=squad_version, BERT=True)
+references = get_squad_validation_references(version=squad_version, remove_id=id_removed)
 squad_metric = load(squad_version)
 if use_compile:
     model = torch.compile(model)
 
 num_training_steps = epochs * len(train_loader)  # Total number of steps
 
-unique_identifier = f"{config.num_layers}-{config.embedding_dim}-{config.window_size}-{config.ratio}-{config.expansion_factor}-{'T' if config.bidirectional else 'F'}-{config.attention_mechanism}"
-
-if model_path is not None:
-    unique_identifier += f"-from_checkpoint"
 
 # Create the log directory we will write checkpoints to and log to
 log_dir = "log"
 os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, f"log-{unique_identifier}.txt")
+log_file = os.path.join(log_dir, f"log-bert.txt")
 with open(log_file, "w") as f: # this clears the existing logs
     f.write("Training hyperparamaters:\n")
     f.write(f", epochs={epochs}, batch_size={B}, lr={lr}, schedule={schedule}, start_factor={start_factor}, end_factor={end_factor}\n")
     f.write(f"Model configurations:\n")
-    f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size} expansion_factor={config.expansion_factor} hidden_dim={config.embedding_dim}\n")
-    f.write(f"# num_layers={config.num_layers} ratio={config.ratio} window_size={config.window_size} bidirectional={config.bidirectional} vocab_size={config.vocab_size} attention_mechanism={config.attention_mechanism}\n")
-    f.write(f"embedding_path={embedding_path} continued_from_checkpoint={model_path is not None}\n")
+    f.write(f"# gpu_name={torch.cuda.get_device_name(torch.cuda.current_device())} parameters={model_size}\n")
 
 eval_every = 5 # Every n epochs, evaluate EM and F1
 
@@ -116,7 +113,7 @@ def get_predictions(batch, logits):
     token_type_ids = batch["token_type_ids"]
     B, T = input_ids.shape
 
-    start_logits, end_logits = logits[:,:,0], logits[:,:,1] # [B, T]
+    start_logits, end_logits = logits.start_logits, logits.end_logits
 
     # Only consider best top_k start and end positions for efficieny
     top_k = 10
@@ -191,6 +188,7 @@ for i in range(epochs):
         logits, loss = forward_batch(batch)
         loss_accum += loss.detach()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.bert_model.parameters(), max_norm=1.0)  # Clipping gradients
         optimizer.step()
         scheduler.step()
         tokens_processed += batch["input_ids"].shape[0] * batch["input_ids"].shape[1] # batch_size * sequence_length
@@ -217,6 +215,7 @@ for i in range(epochs):
             logits, loss = forward_batch(batch)
             val_loss_accum += loss.detach()
             # Only perform eval every few epochs
+            should_get_predictions = True
             if should_get_predictions:
                 predictions.extend(get_predictions(batch, logits))
         
@@ -235,52 +234,3 @@ for i in range(epochs):
         print(epoch_metrics)
         with open(log_file, "a") as f:
             f.write(f"{epoch_metrics}\n")
-        
-        if should_get_predictions:
-            checkpoint_improved = False
-
-            checkpoint = {
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'epoch': i,
-                    'em': em,
-                    'f1': f1,
-                    'combined_score': combined_score
-                }
-
-            # check if EM improved 
-            if em > best_em:
-                if best_em_file:  # remove the previous best checkpoint to free up space
-                    os.remove(best_em_file)
-                best_em = em
-                checkpoint_improved = True
-                best_em_file = os.path.join(
-                    checkpoint_dir, f"{unique_identifier}-best-em.pth"
-                )
-                torch.save(checkpoint, best_em_file)
-
-
-            # check if F1 improved
-            if f1 > best_f1:
-                if best_f1_file:
-                    os.remove(best_f1_file)
-                best_f1 = f1
-                checkpoint_improved = True
-                best_f1_file = os.path.join(
-                    checkpoint_dir, f"{unique_identifier}-best-f1.pth"
-                )
-                torch.save(checkpoint, best_f1_file)
-
-            # check if combined score improved
-            if combined_score > best_combined:
-                if best_combined_file:  
-                    os.remove(best_combined_file)
-                best_combined = combined_score
-                checkpoint_improved = True
-                best_combined_file = os.path.join(
-                    checkpoint_dir, f"{unique_identifier}-best-combined.pth"
-                )
-                torch.save(checkpoint, best_combined_file)
-
-            if checkpoint_improved:
-                print("Checkpoint saved!")

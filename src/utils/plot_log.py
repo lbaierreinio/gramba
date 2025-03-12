@@ -80,39 +80,61 @@ def plot_graphs(log_files):
         
         # Plot EM and F1
         if any(not np.isnan(e) for e in em) or any(not np.isnan(f) for f in f1):
-            plt.subplot(3, 1, 2)
+            max_em = max(em)
+            max_f1 = max(f1)
+            print(f"Max EM: {max_em} | Max F1: {max_f1}", file)
+            plt.subplot(3, 2, 3)
             plt.tight_layout()
-            plt.plot(epochs_em_f1, em, color=color, linestyle='-', label="EM")
-            plt.plot(epochs_em_f1, f1, color=color, linestyle='--', label="F1")
-            plt.xlabel("Epochs")
-            plt.ylabel("Score")
-            plt.title("Exact Match (EM) & F1 Score")
+            plt.bar(idx,height=max_em, color=color, label="EM",alpha=0.8)
+            plt.ylabel("Value")
+            plt.title("EM")
+            plt.xticks([])
+
+            plt.subplot(3, 2, 4)
+            plt.tight_layout()
+            plt.bar(idx,height=max_f1, color=color, label="F1",alpha=0.8)
+            plt.title("F1")
+            plt.xticks([])
+
         
         # Plot training times
         plt.subplot(3, 1, 3)
         plt.tight_layout()
-        plt.plot(epochs, times, color=color, label="Train Time")
+        avg_time = np.mean(times)
+        print(f"Average time per epoch: {avg_time}", file)
+        plt.bar(idx, height=avg_time, color=color, label="Time", alpha=0.8)
         plt.xlabel("Epochs")
         plt.ylabel("Time (s)")
         plt.title("Training Time per Epoch")
+        plt.xticks([])
 
 
     plt.subplot(3, 1, 1)
     plt.legend(handles=[plt.Line2D([0], [0], color='black', linestyle='-', label='Train'),
                         plt.Line2D([0], [0], color='black', linestyle='--', label='Val')],
                 loc='upper right')
-    plt.subplot(3, 1, 2)
-    plt.legend(handles=[plt.Line2D([0], [0], color='black', linestyle='-', label='EM'),
-                        plt.Line2D([0], [0], color='black', linestyle='--', label='F1')],
-                loc='upper right')
+    # plt.subplot(3, 1, 2)
+    # plt.legend(handles=[plt.Line2D([0], [0], color='black', label='EM'),
+    #                     plt.Line2D([0], [0], color='black', label='F1')],
+    #             loc='upper right')
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.3)
     
     # Add global legend at the bottom
-    plt.figlegend([plt.Line2D([0], [0], color=color, label=label) for color, label in legend_labels],
-                  [label for color, label in legend_labels],
-                  loc='center right',
-                  ncol=1)
+    print("Would you like a custom legend? (y/n)")
+    custom_legend = input()
+    if custom_legend == 'n':
+        plt.figlegend([plt.Line2D([0], [0], color=color, label=label) for color, label in legend_labels],
+                    [label for color, label in legend_labels],
+                    loc='center right',
+                    ncol=1)
+    else:
+        print("Enter the legend labels separated by commas")
+        custom_labels = input().split(',')
+        plt.figlegend([plt.Line2D([0], [0], color=color, label=label) for color, label in legend_labels],
+                    custom_labels,
+                    loc='center right',
+                    ncol=1)
     
     plt.show()
     plt.subplots_adjust(bottom=0.05, top=0.95, right=0.75)
