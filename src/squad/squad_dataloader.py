@@ -68,7 +68,7 @@ def preprocess_function(tokenizer, examples):
     return inputs
 
 
-def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
+def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2", BERT=False):
     # Load datasets from HuggingFace
     train_dataset = load_dataset(f"rajpurkar/{version}", split="train")
     val_dataset = load_dataset(f"rajpurkar/{version}", split="validation")
@@ -86,6 +86,11 @@ def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
         batched=True,
         remove_columns=cols_to_remove,
     )
+    if BERT:
+        #remove line that are longer than 512 tokens and save the removed ids
+        id_removed = val_dataset.filter(lambda x: len(x['input_ids']) > 512)['id']
+        train_dataset = train_dataset.filter(lambda x: len(x['input_ids']) <= 512)
+        val_dataset = val_dataset.filter(lambda x: len(x['input_ids']) <= 512)
 
     padding_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     # Custom collate function to handle 'id'
@@ -123,15 +128,20 @@ def get_squad_dataloaders(tokenizer, batch_size, version="squad_v2"):
     val_dataloader = DataLoader(
         val_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn
     )
+    
+    if BERT:
+        return train_dataloader, val_dataloader, id_removed
+    else:
+        return train_dataloader, val_dataloader
 
-    return train_dataloader, val_dataloader
 
-
-def get_squad_validation_references(version="squad_v2"):
+def get_squad_validation_references(version="squad_v2", remove_id=None):
     val_dataset = load_dataset(f"rajpurkar/{version}", split="validation")
+    if remove_id is not None:
+        val_dataset = val_dataset.filter(lambda x: x['id'] not in remove_id)
     # Remove everything except id and answers
     cols_to_remove = val_dataset.column_names
     cols_to_remove.remove("id")
     cols_to_remove.remove("answers")
-    val_dataset = val_dataset.map(remove_columns=cols_to_remove)
+    val_dataset = val_dataset.map(remove_columns=cols_to_remove)        
     return list(val_dataset)
