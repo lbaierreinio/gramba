@@ -42,14 +42,8 @@ end_factor=0.3
 model_path = None
 
 
-config = BertConfig(
-    hidden_size=50,
-    num_hidden_layers=8,
-    num_attention_heads=2,
-    intermediate_size=800,
-)
-# set embedding
-model = BertSQuADModel(config, embeddings=torch.tensor(np.load(embedding_path), dtype=torch.float32),)
+config = BertConfig.from_pretrained('bert-base-uncased', num_hidden_layers=1, num_attention_heads=2, return_dict=True)
+model = BertSQuADModel(config)
 
 model_size = sum(p.numel() for p in model.parameters())
 print(f"Model size: {model_size} parameters")
