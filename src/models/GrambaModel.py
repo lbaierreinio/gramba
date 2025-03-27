@@ -1,8 +1,9 @@
 import torch.nn as nn
 from layers.Block import Block
 from layers.Gramba import Gramba
-from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
+from layers.LongFormerSelfAttention import LongFormerSelfAttention
 from layers.LinFormerSelfAttention import LinFormerSelfAttention
+from layers.PositionalEncoding import PositionalEncoding
 
 
 class GrambaModel(nn.Module):
@@ -23,6 +24,9 @@ class GrambaModel(nn.Module):
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id, _weight=config.embedding_weights, _freeze=True)
+        
+        self.pe = PositionalEncoding(config.embedding_dim)
+        
         self.layers = nn.ModuleList()
 
         if config.ratio == 0:
@@ -35,7 +39,7 @@ class GrambaModel(nn.Module):
                     g = Gramba(config.embedding_dim, config.expansion_factor, config.bidirectional)
                     self.layers.append(Block(g, config.embedding_dim, config.expansion_factor, config.dropout))
                 if config.attention_mechanism == 'longformer':
-                    l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
+                    l = LongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 elif config.attention_mechanism == 'linformer':
                     l = LinFormerSelfAttention(config.embedding_dim, config.pad_token_id, config.dropout)
@@ -43,10 +47,11 @@ class GrambaModel(nn.Module):
 
     def forward(self, x, attention_mask=None, longformer_mask=None, linformer_mask=None, is_sequential=False):
         x = self.embedding(x)
+        x = self.pe(x)
         for layer in self.layers:
             if isinstance(layer.a, Gramba):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
-            elif isinstance(layer.a, HFLongFormerSelfAttention):
+            elif isinstance(layer.a, LongFormerSelfAttention):
                 x = layer(x, longformer_mask, is_sequential=is_sequential)
             elif isinstance(layer.a, LinFormerSelfAttention):
                 x = layer(x,linformer_mask)        

@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import LongformerConfig
 from transformers.models.longformer.modeling_longformer import LongformerSelfAttention
 
-class HFLongFormerSelfAttention(nn.Module):
+class LongFormerSelfAttention(nn.Module):
     def __init__(self, hidden_dim, window_size, pad_token_id, num_attention_heads=2):
         """
         NOTE: This implementation requires a later version of Transformers (e.g. 4.46.3)
@@ -24,7 +24,7 @@ class HFLongFormerSelfAttention(nn.Module):
 
         self.longformer = LongformerSelfAttention(config, layer_id=0)
 
-    def forward(self, x, mask, is_sequential=False):
+    def forward(self, x, mask):
         """
         -10000: No attention
         0: Local attention
