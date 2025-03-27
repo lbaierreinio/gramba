@@ -92,31 +92,6 @@ for window_size in range(32, 2050, 32):
             train_time += time.time() - t0
         
         train_time /= 5
-        '''
-        model.eval()
-
-        for i in range(5): # Warmup period
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-        
-        torch.cuda.reset_peak_memory_stats() 
-        with torch.profiler.profile(
-            activities=[
-                torch.profiler.ProfilerActivity.CPU,
-                torch.profiler.ProfilerActivity.CUDA,
-            ] if torch.cuda.is_available() else [torch.profiler.ProfilerActivity.CPU],
-        ) as prof:
-            cur_max_memory = 0
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-            inference_memory = torch.cuda.max_memory_allocated() / (1024 * 1024)
-        
-        for i in range(5):
-            t0 = time.time()
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-            torch.cuda.synchronize()
-            inference_time += time.time() - t0
-        
-        inference_memory /= 5
-        '''
 
         with open(log_file, "a") as file:
             file.write(f"{window_size},{sum(p.numel() for p in model.parameters())},{train_time},{train_memory},{inference_time},{inference_memory}\n")
@@ -165,31 +140,6 @@ for ratio in range(2, 20):
             train_time += time.time() - t0
         
         train_time /= 5
-        '''
-        model.eval()
-
-        for i in range(5): # Warmup period
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-        
-        torch.cuda.reset_peak_memory_stats() 
-        with torch.profiler.profile(
-            activities=[
-                torch.profiler.ProfilerActivity.CPU,
-                torch.profiler.ProfilerActivity.CUDA,
-            ] if torch.cuda.is_available() else [torch.profiler.ProfilerActivity.CPU],
-        ) as prof:
-            cur_max_memory = 0
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-            inference_memory = torch.cuda.max_memory_allocated() / (1024 * 1024)
-        
-        for i in range(5):
-            t0 = time.time()
-            model(batch, attention_mask, longformer_mask, is_sequential=True)
-            torch.cuda.synchronize()
-            inference_time += time.time() - t0
-        
-        inference_time /= 5'
-        '''
 
         with open(log_file, "a") as file:
             file.write(f"{ratio},{sum(p.numel() for p in model.parameters())},{train_time},{train_memory},{inference_time},{inference_memory}\n")
