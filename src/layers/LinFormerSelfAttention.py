@@ -12,7 +12,7 @@ class LinFormerSelfAttention(nn.Module):
 
         self.linformer = LinformerSelfAttention(embedding_dim, seq_len = 870, dropout=dropout, heads = 2)
     
-    def forward(self, x, mask):
+    def forward(self, x, mask, is_sequential=False):
         """
         Apply mask to ignore padding tokens
         """

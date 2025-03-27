@@ -24,7 +24,7 @@ class LongFormerSelfAttention(nn.Module):
 
         self.longformer = LongformerSelfAttention(config, layer_id=0)
 
-    def forward(self, x, mask):
+    def forward(self, x, mask, is_sequential=False):
         """
         -10000: No attention
         0: Local attention
