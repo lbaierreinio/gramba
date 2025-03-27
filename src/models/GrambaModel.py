@@ -52,7 +52,7 @@ class GrambaModel(nn.Module):
             if isinstance(layer.a, Gramba):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
             elif isinstance(layer.a, LongFormerSelfAttention):
-                x = layer(x, longformer_mask, is_sequential=is_sequential)
+                x = layer(x, longformer_mask)
             elif isinstance(layer.a, LinFormerSelfAttention):
                 x = layer(x,linformer_mask)        
         return x
