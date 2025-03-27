@@ -2,7 +2,7 @@ import torch.nn as nn
 from layers.Block import Block
 from layers.Gramba import Gramba
 from layers.HFLongFormerSelfAttention import HFLongFormerSelfAttention
-from layers.LinFormerSelfAttentionPadded import LinFormerSelfAttentionPadded
+from layers.LinFormerSelfAttention import LinFormerSelfAttention
 
 
 class GrambaModel(nn.Module):
@@ -38,9 +38,8 @@ class GrambaModel(nn.Module):
                     l = HFLongFormerSelfAttention(config.embedding_dim, config.window_size, config.pad_token_id)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
                 elif config.attention_mechanism == 'linformer':
-                    l = LinFormerSelfAttentionPadded(config.embedding_dim, config.pad_token_id, config.dropout)
+                    l = LinFormerSelfAttention(config.embedding_dim, config.pad_token_id, config.dropout)
                     self.layers.append(Block(l, config.embedding_dim, config.expansion_factor, config.dropout))
-                # TODO: Add different attention mechanisms here
 
     def forward(self, x, attention_mask=None, longformer_mask=None, linformer_mask=None, is_sequential=False):
         x = self.embedding(x)
@@ -49,6 +48,6 @@ class GrambaModel(nn.Module):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
             elif isinstance(layer.a, HFLongFormerSelfAttention):
                 x = layer(x, longformer_mask, is_sequential=is_sequential)
-            elif isinstance(layer.a, LinFormerSelfAttentionPadded):
+            elif isinstance(layer.a, LinFormerSelfAttention):
                 x = layer(x,linformer_mask)        
         return x

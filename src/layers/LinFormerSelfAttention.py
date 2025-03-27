@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from linformer import LinformerSelfAttention
 
-class LinFormerSelfAttentionPadded(nn.Module):
+class LinFormerSelfAttention(nn.Module):
     def __init__(self, embedding_dim, pad_token_id, dropout):
         """
         NOTE: This implementation requires a later version of Transformers (e.g. 4.46.3)

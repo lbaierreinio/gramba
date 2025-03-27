@@ -92,9 +92,9 @@ def forward_batch(batch):
     if ampere_gpu:
         # mixed precision training
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
-            logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
+            logits, loss = model(x, targets=y, attention_mask=mask)
     else:
-        logits, loss = model(x, targets=y, attention_mask=mask, longformer_mask=batch['longformer_mask'].to(device), linformer_mask=batch['linformer_mask'].to(device))
+        logits, loss = model(x, targets=y, attention_mask=mask)
 
     return logits, loss
 
@@ -188,7 +188,6 @@ for i in range(epochs):
         logits, loss = forward_batch(batch)
         loss_accum += loss.detach()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.bert_model.parameters(), max_norm=1.0)  # Clipping gradients
         optimizer.step()
         scheduler.step()
         tokens_processed += batch["input_ids"].shape[0] * batch["input_ids"].shape[1] # batch_size * sequence_length
@@ -215,7 +214,6 @@ for i in range(epochs):
             logits, loss = forward_batch(batch)
             val_loss_accum += loss.detach()
             # Only perform eval every few epochs
-            should_get_predictions = True
             if should_get_predictions:
                 predictions.extend(get_predictions(batch, logits))
         
