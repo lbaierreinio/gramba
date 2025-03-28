@@ -65,9 +65,9 @@ Helper functions for loading the SQuAD dataset.
 
 ### `train`
 Scripts to train models on various datasets. These scripts accept no arguments. The code needs to be adjusted to change the model's hyperparameters. These scripts should be ran on a machine with access to CUDA (e.g. U of T's SLURM Cluster). All of these scripts produce log files, which can be visualized by scripts in the `utils` directory.
-1) `train_squad.py`: Train a Gramba model on SQuAD.
-2) `bert_squad.py`: Train a BERT model on SQuAD
-3) `train_classification`: Train a Gramba model either on Twitter or IMDB.
+1) `train_gramba_squad.py`: Train a Gramba model on SQuAD.
+2) `train_bert_squad.py`: Train a BERT model on SQuAD
+3) `train_gramba_sequence_classification`: Train a Gramba model either on Twitter or IMDB.
 
 ### `baseline`
 Contains code to load an LSTM model.
