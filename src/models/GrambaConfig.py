@@ -15,6 +15,8 @@ class GrambaConfig:
     - pad_token_id: The token ID for padding.
     - vocab_size: The size of the vocabulary.
     - embedding_weights: The weights for the embeddings (if not provided the embedding weights are initialized from scratch.).
+    - attention_mechanism: The attention mechanism to use (either 'longformer' or 'linformer').
+    - max_len: The maximum length of the input sequence.
 
     """
     def __init__(
@@ -31,6 +33,7 @@ class GrambaConfig:
             vocab_size: int = 30522,
             embedding_weights: torch.Tensor = None,
             attention_mechanism: str = 'longformer',
+            max_len: int = 8192
     ):
         """
         Initialize the configuration class for Gramba.
@@ -47,3 +50,4 @@ class GrambaConfig:
         self.vocab_size = vocab_size
         self.embedding_weights = embedding_weights
         self.attention_mechanism = attention_mechanism
+        self.max_len = max_len

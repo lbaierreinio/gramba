@@ -3,6 +3,7 @@ from layers.Block import Block
 from layers.Gramba import Gramba
 from layers.LongFormerSelfAttention import LongFormerSelfAttention
 from layers.LinFormerSelfAttention import LinFormerSelfAttention
+from layers.PositionalEncoding import PositionalEncoding
 
 
 class GrambaModel(nn.Module):
@@ -23,8 +24,9 @@ class GrambaModel(nn.Module):
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id)
         else:
             self.embedding = nn.Embedding(config.vocab_size, config.embedding_dim, padding_idx=config.pad_token_id, _weight=config.embedding_weights, _freeze=True)
-
+        self.pe = PositionalEncoding(config.embedding_dim)
         self.layers = nn.ModuleList()
+
 
         if config.ratio == 0:
             for _ in range(config.num_layers):
@@ -44,6 +46,7 @@ class GrambaModel(nn.Module):
 
     def forward(self, x, attention_mask=None, longformer_mask=None, linformer_mask=None, is_sequential=False):
         x = self.embedding(x)
+        x = self.pe(x)
         for layer in self.layers:
             if isinstance(layer.a, Gramba):
                 x = layer(x, attention_mask, is_sequential=is_sequential)
