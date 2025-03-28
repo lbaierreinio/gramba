@@ -87,7 +87,7 @@ Three Models:
 2) Gramba for Sequence Classification (`GrambaForSequenceClassification`)
 3) Gramba for Question Answering (`GrambaSQuADModel`).
 
-These can be instantiated along with an instance of the `GrambaConfig` file, which specify the default hyperparameters of the Gramba model.
+These can be instantiated along with an instance of the `GrambaConfig` class, which specify the default hyperparameters of the Gramba model.
 
 #### Usage
 ```bash
