@@ -11,12 +11,23 @@ Gramba is a hybrid Transformer RNN deep learning architecture that interleaves m
 
 ## Setup
 1) Clone the repository onto your machine.
-2) Create the virtual environment: ```conda env create -f environment.yml```
+2) Create the virtual environment:
+
+> ```conda env create -f environment.yml```
+
 > **Note:** This may take several minutes.
-3) Activate the environment: ```conda activate gramba```
-4) Ensure the src directory is in your Python Path: ```export PYTHONPATH="$PYTHONPATH:/path/to/repository/src"```
+3) Activate the environment:
+
+> ```conda activate gramba```
+
+4) Ensure the src directory is in your Python Path:
+
+> ```export PYTHONPATH="$PYTHONPATH:/path/to/repository/src"```
+
 > **Note:** This will only add the src directory to your path for your current session.  Write the export command to your .bashrc, .zshrc, or equivalent to add the path permanently.
-5) Verify that test cases work: ```pytest```
+5) Verify that test cases work:
+
+> ```pytest```
 
 ## `test`
 A small suite to ensure that the model architecture is working correctly. These tests should be verified before pull requests are merged into main.
