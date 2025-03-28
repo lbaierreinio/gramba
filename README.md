@@ -18,7 +18,11 @@ Gramba is a hybrid Transformer RNN deep learning architecture that interleaves m
 > **Note:** This will only add the src directory to your path for your current session.  Write the export command to your .bashrc, .zshrc, or equivalent to add the path permanently.
 5) Verify that test cases work: ```pytest```
 
-## Codebase (src directory)
+## `test`
+A small suite to ensure that the model architecture is working correctly. These tests should be verified before pull requests are merged into main.
+
+## `src`
+The `src` directory contains the Gramba model logic, scripts to load the dataset, train the model, visualize log files, etc.
 
 ### `glove`
 The `glove` directory contains the logic to load the GloVe embeddings into a numpy matrix to be later used as the embeddings for Gramba.
