@@ -94,7 +94,7 @@ Building blocks of the Gramba model.
 
 ### `model`
 Three Models: 
-1) The base Gramba Model (`GrambaModel`)
+1) The base Gramba Model (`GrambaModel`). This model will output an encoded vector for each token in the sequence. One could add a classification head to this model to use it for question answering, named entity recognition, co-reference resolution, etc, or for classification, by making a prediction on the `[CLS]` token.
 2) Gramba for Sequence Classification (`GrambaForSequenceClassification`)
 3) Gramba for Question Answering (`GrambaSQuADModel`).
 
