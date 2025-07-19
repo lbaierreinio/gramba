@@ -80,9 +80,6 @@ Scripts to train models on various datasets. These scripts accept no arguments. 
 2) `train_bert_squad.py`: Train a BERT model on SQuAD
 3) `train_gramba_sequence_classification`: Train a Gramba model either on Twitter or IMDB.
 
-### `baseline`
-Contains code to load an LSTM model.
-
 ### `utils`
 Various utilities, including scripts which accept log files and produce visualizations.
 
